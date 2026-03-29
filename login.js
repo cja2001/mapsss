@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       showGlobalAlert('✓ Acceso concedido. Redirigiendo...', 'success');
-      setTimeout(() => { window.location.href = 'dashboard.html'; }, 900);
+      setTimeout(() => { window.location.href = 'maps.html'; }, 900);
 
     } catch (err) {
       showGlobalAlert('Error de conexión. Intenta de nuevo.');
