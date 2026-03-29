@@ -1,6 +1,5 @@
 /// ─── Helpers ────────────────────────────────────────────────────────────────
-const supabase = window.supabase.createClient('https://nwnlqaohxzxflmxwrtyy.supabase.co', 'sb_publishable_XjDNrEjB-cbw1_zOlmOCpQ_WCmFjSXr'
-);
+
 
 const $ = id => document.getElementById(id);
 
