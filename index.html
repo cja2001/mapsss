@@ -47,7 +47,9 @@
     </div>
   </div>
 
-  <!-- Script externo -->
-  <script src="login.js" defer></script>
+  <!-- 1. Supabase CDN (siempre primero) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 2. Tu lógica (sin defer) -->
+  <script src="login.js"></script>
 </body>
 </html>
