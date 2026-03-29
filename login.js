@@ -1,5 +1,8 @@
 /// ─── Helpers ────────────────────────────────────────────────────────────────
+import { createClient } from '@supabase/supabase-js'
 
+// Create a single supabase client for interacting with your database
+const supabase = createClient('https://nwnlqaohxzxflmxwrtyy.supabase.co', 'sb_publishable_XjDNrEjB-cbw1_zOlmOCpQ_WCmFjSXr')
 
 const $ = id => document.getElementById(id);
 
