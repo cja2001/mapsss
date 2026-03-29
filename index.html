@@ -6,7 +6,6 @@
 <title>Login</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div class="wrapper"></div>
@@ -35,7 +34,8 @@
 
       <div class="alert" id="alert-global"></div>
 
-      <button class="btn" id="btn-login" onclick="handleLogin()">
+      <!-- onclick eliminado — el evento se registra desde login.js -->
+      <button class="btn" id="btn-login">
         <span class="btn-text">Iniciar sesión</span>
         <span class="btn-spinner" id="btn-spinner" style="display:none;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -50,7 +50,7 @@
 
   <!-- 1. Supabase CDN (siempre primero) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- 2. Tu lógica (sin defer) -->
+  <!-- 2. Tu lógica -->
   <script src="login.js"></script>
 </body>
 </html>
