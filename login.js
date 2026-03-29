@@ -1,7 +1,5 @@
 /// ─── Helpers ────────────────────────────────────────────────────────────────
-const supabase = window.supabase.createClient(
-  'https://nwnlqaohxzxflmxwrtyy.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53bmxxYW9oeHp4ZmxteHdydHl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5NDEwNzIsImV4cCI6MjA4NDUxNzA3Mn0.XvSVGUgph3XhiRLoJVqeZwNDZbGrociENpsfvQ6VtB8'
+const supabase = window.supabase.createClient('https://nwnlqaohxzxflmxwrtyy.supabase.co', 'sb_publishable_XjDNrEjB-cbw1_zOlmOCpQ_WCmFjSXr'
 );
 
 const $ = id => document.getElementById(id);
