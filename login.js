@@ -1,7 +1,8 @@
-// ─── Helpers ────────────────────────────────────────────────────────────────
-const supabase=windodw.supabase.createClient('https://nwnlqaohxzxflmxwrtyy.supabase.co', 
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53bmxxYW9oeHp4ZmxteHdydHl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5NDEwNzIsImV4cCI6MjA4NDUxNzA3Mn0.XvSVGUgph3XhiRLoJVqeZwNDZbGrociENpsfvQ6VtB8');
-
+/// ─── Helpers ────────────────────────────────────────────────────────────────
+const supabase = window.supabase.createClient(
+  'https://nwnlqaohxzxflmxwrtyy.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53bmxxYW9oeHp4ZmxteHdydHl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5NDEwNzIsImV4cCI6MjA4NDUxNzA3Mn0.XvSVGUgph3XhiRLoJVqeZwNDZbGrociENpsfvQ6VtB8'
+);
 
 const $ = id => document.getElementById(id);
 
@@ -60,21 +61,25 @@ async function handleLogin() {
 
   setLoading(true);
 
-  const payload = new FormData();
-  payload.append('usuario',  $('usuario').value.trim());
-  payload.append('password', $('password').value);
+  const email    = $('usuario').value.trim();
+  const password = $('password').value;
 
   try {
-    const res  = await fetch('auth.php', { method: 'POST', body: payload });
-    const data = await res.json();
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (data.success) {
-      showGlobalAlert('✓ Acceso concedido. Redirigiendo...', 'success');
-      setTimeout(() => { window.location.href = data.redirect ?? 'dashboard.html'; }, 900);
-    } else {
-      showGlobalAlert(data.message ?? 'Credenciales incorrectas.');
+    if (error) {
+      const msg = error.message.includes('Invalid login credentials')
+        ? 'Credenciales incorrectas.'
+        : error.message;
+      showGlobalAlert(msg);
       setLoading(false);
+      return;
     }
+
+    // Login exitoso — data.session contiene el JWT
+    showGlobalAlert('✓ Acceso concedido. Redirigiendo...', 'success');
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 900);
+
   } catch (err) {
     showGlobalAlert('Error de conexión. Intenta de nuevo.');
     setLoading(false);
