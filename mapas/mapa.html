@@ -1,84 +1,112 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-        <meta name="mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <link rel="stylesheet" href="css/leaflet.css">
-        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
-        <link rel="stylesheet" href="css/L.Control.Locate.min.css">
-        <link rel="stylesheet" href="css/qgis2web.css">
-        <link rel="stylesheet" href="css/fontawesome-all.min.css">
-        <link rel="stylesheet" href="css/leaflet.photon.css">
-        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-        <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-        <style>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <link rel="stylesheet" href="css/leaflet.css">
+    <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+    <link rel="stylesheet" href="css/L.Control.Locate.min.css">
+    <link rel="stylesheet" href="css/qgis2web.css">
+    <link rel="stylesheet" href="css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="css/leaflet.photon.css">
+
+    <!-- MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css">
+
+    <style>
         html, body, #map {
             width: 100%;
             height: 100%;
             padding: 0;
             margin: 0;
         }
-        </style>
-        <title></title>
-    </head>
-    <body>
-        <div id="map">
-        </div>
-        <script src="js/qgis2web_expressions.js"></script>
-        <script src="js/leaflet.js"></script>
-        <script src="js/L.Control.Layers.Tree.min.js"></script>
-        <script src="js/L.Control.Locate.min.js"></script>
-        <script src="js/leaflet.rotatedMarker.js"></script>
-        <script src="js/leaflet.pattern.js"></script>
-        <script src="js/leaflet-hash.js"></script>
-        <script src="js/Autolinker.min.js"></script>
-        <script src="js/rbush.min.js"></script>
-        <script src="js/labelgun.min.js"></script>
-        <script src="js/labels.js"></script>
-        <script src="js/leaflet.photon.js"></script>
-        <script src="data/SAN_SALVADOR_SUR_2.js"></script>
-        <script src="data/APGPSSANTOTOMAS2025_1xlsx_3.js"></script>
-        <script src="data/APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4.js"></script>
-        <script src="data/GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5.js"></script>
-        <script src="data/GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6.js"></script>
-        <script src="data/LUMINARIASPANCHIMALCO_7.js"></script>
-        <script src="data/GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8.js"></script>
-        <script src="data/LUMINARIASSANMARCOSDS_9.js"></script>
-        <script>
+    </style>
+
+    <title></title>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="js/qgis2web_expressions.js"></script>
+    <script src="js/leaflet.js"></script>
+
+    <!-- MarkerCluster JS: va después de Leaflet -->
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+    <script src="js/L.Control.Layers.Tree.min.js"></script>
+    <script src="js/L.Control.Locate.min.js"></script>
+    <script src="js/leaflet.rotatedMarker.js"></script>
+    <script src="js/leaflet.pattern.js"></script>
+    <script src="js/leaflet-hash.js"></script>
+    <script src="js/Autolinker.min.js"></script>
+    <script src="js/rbush.min.js"></script>
+    <script src="js/labelgun.min.js"></script>
+    <script src="js/labels.js"></script>
+    <script src="js/leaflet.photon.js"></script>
+
+    <script src="data/SAN_SALVADOR_SUR_2.js"></script>
+    <script src="data/APGPSSANTOTOMAS2025_1xlsx_3.js"></script>
+    <script src="data/APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4.js"></script>
+    <script src="data/GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5.js"></script>
+    <script src="data/GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6.js"></script>
+    <script src="data/LUMINARIASPANCHIMALCO_7.js"></script>
+    <script src="data/GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8.js"></script>
+    <script src="data/LUMINARIASSANMARCOSDS_9.js"></script>
+
+    <script>
         var map = L.map('map', {
-            zoomControl:false, maxZoom:28, minZoom:1
-        }).fitBounds([[13.631472023501145,-89.27818236036123],[13.724384244059307,-89.0857747667416]]);
+            zoomControl: false,
+            maxZoom: 28,
+            minZoom: 1
+        }).fitBounds([
+            [13.631472023501145, -89.27818236036123],
+            [13.724384244059307, -89.0857747667416]
+        ]);
+
         var hash = new L.Hash(map);
-        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
-        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
-        // remove popup's row if "visible-with-data"
+
+        map.attributionControl.setPrefix(
+            '<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; ' +
+            '<a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; ' +
+            '<a href="https://qgis.org">QGIS</a>'
+        );
+
+        var autolinker = new Autolinker({
+            truncate: { length: 30, location: 'smart' }
+        });
+
         function removeEmptyRowsFromPopupContent(content, feature) {
-         var tempDiv = document.createElement('div');
-         tempDiv.innerHTML = content;
-         var rows = tempDiv.querySelectorAll('tr');
-         for (var i = 0; i < rows.length; i++) {
-             var td = rows[i].querySelector('td.visible-with-data');
-             var key = td ? td.id : '';
-             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
-                 rows[i].parentNode.removeChild(rows[i]);
-             }
-         }
-         return tempDiv.innerHTML;
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            var rows = tempDiv.querySelectorAll('tr');
+
+            for (var i = 0; i < rows.length; i++) {
+                var td = rows[i].querySelector('td.visible-with-data');
+                var key = td ? td.id : '';
+                if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                    rows[i].parentNode.removeChild(rows[i]);
+                }
+            }
+
+            return tempDiv.innerHTML;
         }
-        // modify popup if contains media
+
         function addClassToPopupIfMedia(content, popup) {
             var tempDiv = document.createElement('div');
             tempDiv.innerHTML = content;
             var imgTd = tempDiv.querySelector('td img');
+
             if (imgTd) {
                 var src = imgTd.getAttribute('src');
+
                 if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
                     popup._contentNode.classList.add('media');
-                    setTimeout(function() {
+                    setTimeout(function () {
                         popup.update();
                     }, 10);
                 } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
@@ -87,7 +115,7 @@
                     audio.src = src;
                     imgTd.parentNode.replaceChild(audio, imgTd);
                     popup._contentNode.classList.add('media');
-                    setTimeout(function() {
+                    setTimeout(function () {
                         popup.setContent(tempDiv.innerHTML);
                         popup.update();
                     }, 10);
@@ -101,11 +129,12 @@
                     video.style.maxWidth = "60vw";
                     imgTd.parentNode.replaceChild(video, imgTd);
                     popup._contentNode.classList.add('media');
-                    // Aggiorna il popup quando il video carica i metadati
-                    video.addEventListener('loadedmetadata', function() {
+
+                    video.addEventListener('loadedmetadata', function () {
                         popup.update();
                     });
-                    setTimeout(function() {
+
+                    setTimeout(function () {
                         popup.setContent(tempDiv.innerHTML);
                         popup.update();
                     }, 10);
@@ -116,15 +145,39 @@
                 popup._contentNode.classList.remove('media');
             }
         }
+
         var zoomControl = L.control.zoom({
             position: 'topleft'
         }).addTo(map);
-        L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+
+        L.control.locate({
+            locateOptions: { maxZoom: 19 }
+        }).addTo(map);
+
         var bounds_group = new L.featureGroup([]);
-        function setBounds() {
-        }
+
+        var clusterOptions = {
+            maxClusterRadius: 60,
+            disableClusteringAtZoom: 17,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true
+        };
+
+        var cluster_APGPSSANTOTOMAS2025_1xlsx_3 = L.markerClusterGroup(clusterOptions);
+        var cluster_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4 = L.markerClusterGroup(clusterOptions);
+        var cluster_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5 = L.markerClusterGroup(clusterOptions);
+        var cluster_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6 = L.markerClusterGroup(clusterOptions);
+        var cluster_LUMINARIASPANCHIMALCO_7 = L.markerClusterGroup(clusterOptions);
+        var cluster_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8 = L.markerClusterGroup(clusterOptions);
+        var cluster_LUMINARIASSANMARCOSDS_9 = L.markerClusterGroup(clusterOptions);
+
+        function setBounds() {}
+
+        // BASEMAPS
         map.createPane('pane_GoogleLabels_0');
         map.getPane('pane_GoogleLabels_0').style.zIndex = 400;
+
         var layer_GoogleLabels_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', {
             pane: 'pane_GoogleLabels_0',
             opacity: 1.0,
@@ -134,10 +187,11 @@
             minNativeZoom: 0,
             maxNativeZoom: 20
         });
-        layer_GoogleLabels_0;
         map.addLayer(layer_GoogleLabels_0);
+
         map.createPane('pane_GoogleSatellite_1');
         map.getPane('pane_GoogleSatellite_1').style.zIndex = 401;
+
         var layer_GoogleSatellite_1 = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
             pane: 'pane_GoogleSatellite_1',
             opacity: 1.0,
@@ -147,88 +201,32 @@
             minNativeZoom: 0,
             maxNativeZoom: 20
         });
-        layer_GoogleSatellite_1;
         map.addLayer(layer_GoogleSatellite_1);
-        function pop_SAN_SALVADOR_SUR_2(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Name'] !== null ? autolinker.link(String(feature.properties['Name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['description'] !== null ? autolinker.link(String(feature.properties['description']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['timestamp'] !== null ? autolinker.link(String(feature.properties['timestamp']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['begin'] !== null ? autolinker.link(String(feature.properties['begin']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['end'] !== null ? autolinker.link(String(feature.properties['end']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['altitudeMode'] !== null ? autolinker.link(String(feature.properties['altitudeMode']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['tessellate'] !== null ? autolinker.link(String(feature.properties['tessellate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['extrude'] !== null ? autolinker.link(String(feature.properties['extrude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['visibility'] !== null ? autolinker.link(String(feature.properties['visibility']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['drawOrder'] !== null ? autolinker.link(String(feature.properties['drawOrder']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['icon'] !== null ? autolinker.link(String(feature.properties['icon']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Descripci__n'] !== null ? autolinker.link(String(feature.properties['Descripci__n']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['NOMBRE'] !== null ? autolinker.link(String(feature.properties['NOMBRE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['PPTO'] !== null ? autolinker.link(String(feature.properties['PPTO']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['HABITANTES'] !== null ? autolinker.link(String(feature.properties['HABITANTES']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['AT'] !== null ? autolinker.link(String(feature.properties['AT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['MUNICIPIO'] !== null ? autolinker.link(String(feature.properties['MUNICIPIO']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
 
-        function style_SAN_SALVADOR_SUR_2_0() {
-            return {
-                pane: 'pane_SAN_SALVADOR_SUR_2',
-                opacity: 1,
-                color: 'rgba(255,255,255,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 3.0, 
-                fillOpacity: 0,
-                interactive: true,
-            }
-        }
+        // ========= CONSERVÁ TUS FUNCIONES pop_... y style_... ORIGINALES =========
+        // Pegá aquí exactamente las funciones que ya tenés:
+        // pop_SAN_SALVADOR_SUR_2
+        // style_SAN_SALVADOR_SUR_2_0
+        // pop_APGPSSANTOTOMAS2025_1xlsx_3
+        // style_APGPSSANTOTOMAS2025_1xlsx_3_0
+        // pop_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4
+        // style_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4_0
+        // pop_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5
+        // style_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5_0
+        // pop_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6
+        // style_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6_0
+        // pop_LUMINARIASPANCHIMALCO_7
+        // style_LUMINARIASPANCHIMALCO_7_0
+        // pop_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8
+        // style_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8_0
+        // pop_LUMINARIASSANMARCOSDS_9
+        // style_LUMINARIASSANMARCOSDS_9_0
+
+        // CAPA POLIGONAL
         map.createPane('pane_SAN_SALVADOR_SUR_2');
         map.getPane('pane_SAN_SALVADOR_SUR_2').style.zIndex = 402;
         map.getPane('pane_SAN_SALVADOR_SUR_2').style['mix-blend-mode'] = 'normal';
+
         var layer_SAN_SALVADOR_SUR_2 = new L.geoJson(json_SAN_SALVADOR_SUR_2, {
             attribution: '',
             interactive: true,
@@ -236,87 +234,17 @@
             layerName: 'layer_SAN_SALVADOR_SUR_2',
             pane: 'pane_SAN_SALVADOR_SUR_2',
             onEachFeature: pop_SAN_SALVADOR_SUR_2,
-            style: style_SAN_SALVADOR_SUR_2_0,
+            style: style_SAN_SALVADOR_SUR_2_0
         });
+
         bounds_group.addLayer(layer_SAN_SALVADOR_SUR_2);
         map.addLayer(layer_SAN_SALVADOR_SUR_2);
-        function pop_APGPSSANTOTOMAS2025_1xlsx_3(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Name'] !== null ? autolinker.link(String(feature.properties['Name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['description'] !== null ? autolinker.link(String(feature.properties['description']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['timestamp'] !== null ? autolinker.link(String(feature.properties['timestamp']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['begin'] !== null ? autolinker.link(String(feature.properties['begin']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['end'] !== null ? autolinker.link(String(feature.properties['end']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['altitudeMode'] !== null ? autolinker.link(String(feature.properties['altitudeMode']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['tessellate'] !== null ? autolinker.link(String(feature.properties['tessellate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['extrude'] !== null ? autolinker.link(String(feature.properties['extrude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['visibility'] !== null ? autolinker.link(String(feature.properties['visibility']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['drawOrder'] !== null ? autolinker.link(String(feature.properties['drawOrder']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['icon'] !== null ? autolinker.link(String(feature.properties['icon']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Potencia_W_'] !== null ? autolinker.link(String(feature.properties['Potencia_W_']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Distrito'] !== null ? autolinker.link(String(feature.properties['Distrito']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Latitude'] !== null ? autolinker.link(String(feature.properties['Latitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Longitude'] !== null ? autolinker.link(String(feature.properties['Longitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
 
-        function style_APGPSSANTOTOMAS2025_1xlsx_3_0() {
-            return {
-                pane: 'pane_APGPSSANTOTOMAS2025_1xlsx_3',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(31,120,180,1.0)',
-                interactive: true,
-            }
-        }
+        // CAPA PUNTUAL 1
         map.createPane('pane_APGPSSANTOTOMAS2025_1xlsx_3');
         map.getPane('pane_APGPSSANTOTOMAS2025_1xlsx_3').style.zIndex = 403;
         map.getPane('pane_APGPSSANTOTOMAS2025_1xlsx_3').style['mix-blend-mode'] = 'normal';
+
         var layer_APGPSSANTOTOMAS2025_1xlsx_3 = new L.geoJson(json_APGPSSANTOTOMAS2025_1xlsx_3, {
             attribution: '',
             interactive: true,
@@ -325,95 +253,20 @@
             pane: 'pane_APGPSSANTOTOMAS2025_1xlsx_3',
             onEachFeature: pop_APGPSSANTOTOMAS2025_1xlsx_3,
             pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
+                var context = { feature: feature, variables: {} };
                 return L.circleMarker(latlng, style_APGPSSANTOTOMAS2025_1xlsx_3_0(feature));
-            },
-        });
-        bounds_group.addLayer(layer_APGPSSANTOTOMAS2025_1xlsx_3);
-        map.addLayer(layer_APGPSSANTOTOMAS2025_1xlsx_3);
-        function pop_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Name'] !== null ? autolinker.link(String(feature.properties['Name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['description'] !== null ? autolinker.link(String(feature.properties['description']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['timestamp'] !== null ? autolinker.link(String(feature.properties['timestamp']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['begin'] !== null ? autolinker.link(String(feature.properties['begin']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['end'] !== null ? autolinker.link(String(feature.properties['end']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['altitudeMode'] !== null ? autolinker.link(String(feature.properties['altitudeMode']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['tessellate'] !== null ? autolinker.link(String(feature.properties['tessellate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['extrude'] !== null ? autolinker.link(String(feature.properties['extrude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['visibility'] !== null ? autolinker.link(String(feature.properties['visibility']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['drawOrder'] !== null ? autolinker.link(String(feature.properties['drawOrder']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['icon'] !== null ? autolinker.link(String(feature.properties['icon']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Distrito_'] !== null ? autolinker.link(String(feature.properties['Distrito_']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Tipo_'] !== null ? autolinker.link(String(feature.properties['Tipo_']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Potencia_W_'] !== null ? autolinker.link(String(feature.properties['Potencia_W_']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Latitude'] !== null ? autolinker.link(String(feature.properties['Latitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Longitude'] !== null ? autolinker.link(String(feature.properties['Longitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4_0() {
-            return {
-                pane: 'pane_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(229,182,54,1.0)',
-                interactive: true,
             }
-        }
+        });
+
+        cluster_APGPSSANTOTOMAS2025_1xlsx_3.addLayer(layer_APGPSSANTOTOMAS2025_1xlsx_3);
+        bounds_group.addLayer(layer_APGPSSANTOTOMAS2025_1xlsx_3);
+        map.addLayer(cluster_APGPSSANTOTOMAS2025_1xlsx_3);
+
+        // CAPA PUNTUAL 2
         map.createPane('pane_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4');
         map.getPane('pane_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4').style.zIndex = 404;
         map.getPane('pane_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4').style['mix-blend-mode'] = 'normal';
+
         var layer_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4 = new L.geoJson(json_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4, {
             attribution: '',
             interactive: true,
@@ -422,92 +275,20 @@
             pane: 'pane_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4',
             onEachFeature: pop_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4,
             pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
+                var context = { feature: feature, variables: {} };
                 return L.circleMarker(latlng, style_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4_0(feature));
-            },
-        });
-        bounds_group.addLayer(layer_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4);
-        map.addLayer(layer_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4);
-        function pop_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Name'] !== null ? autolinker.link(String(feature.properties['Name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['description'] !== null ? autolinker.link(String(feature.properties['description']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['timestamp'] !== null ? autolinker.link(String(feature.properties['timestamp']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['begin'] !== null ? autolinker.link(String(feature.properties['begin']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['end'] !== null ? autolinker.link(String(feature.properties['end']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['altitudeMode'] !== null ? autolinker.link(String(feature.properties['altitudeMode']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['tessellate'] !== null ? autolinker.link(String(feature.properties['tessellate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['extrude'] !== null ? autolinker.link(String(feature.properties['extrude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['visibility'] !== null ? autolinker.link(String(feature.properties['visibility']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['drawOrder'] !== null ? autolinker.link(String(feature.properties['drawOrder']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['icon'] !== null ? autolinker.link(String(feature.properties['icon']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Potencia_W_'] !== null ? autolinker.link(String(feature.properties['Potencia_W_']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Cliente_Municipio'] !== null ? autolinker.link(String(feature.properties['Cliente_Municipio']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Latitude'] !== null ? autolinker.link(String(feature.properties['Latitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Longitude'] !== null ? autolinker.link(String(feature.properties['Longitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5_0() {
-            return {
-                pane: 'pane_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(141,90,153,1.0)',
-                interactive: true,
             }
-        }
+        });
+
+        cluster_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4.addLayer(layer_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4);
+        bounds_group.addLayer(layer_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4);
+        map.addLayer(cluster_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4);
+
+        // CAPA PUNTUAL 3
         map.createPane('pane_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5');
         map.getPane('pane_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5').style.zIndex = 405;
         map.getPane('pane_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5').style['mix-blend-mode'] = 'normal';
+
         var layer_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5 = new L.geoJson(json_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5, {
             attribution: '',
             interactive: true,
@@ -516,92 +297,20 @@
             pane: 'pane_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5',
             onEachFeature: pop_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5,
             pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
+                var context = { feature: feature, variables: {} };
                 return L.circleMarker(latlng, style_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5_0(feature));
-            },
-        });
-        bounds_group.addLayer(layer_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5);
-        map.addLayer(layer_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5);
-        function pop_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Name'] !== null ? autolinker.link(String(feature.properties['Name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['description'] !== null ? autolinker.link(String(feature.properties['description']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['timestamp'] !== null ? autolinker.link(String(feature.properties['timestamp']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['begin'] !== null ? autolinker.link(String(feature.properties['begin']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['end'] !== null ? autolinker.link(String(feature.properties['end']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['altitudeMode'] !== null ? autolinker.link(String(feature.properties['altitudeMode']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['tessellate'] !== null ? autolinker.link(String(feature.properties['tessellate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['extrude'] !== null ? autolinker.link(String(feature.properties['extrude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['visibility'] !== null ? autolinker.link(String(feature.properties['visibility']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['drawOrder'] !== null ? autolinker.link(String(feature.properties['drawOrder']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['icon'] !== null ? autolinker.link(String(feature.properties['icon']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Potencia_W_'] !== null ? autolinker.link(String(feature.properties['Potencia_W_']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Cliente_Municipio'] !== null ? autolinker.link(String(feature.properties['Cliente_Municipio']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Latitude'] !== null ? autolinker.link(String(feature.properties['Latitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Longitude'] !== null ? autolinker.link(String(feature.properties['Longitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6_0() {
-            return {
-                pane: 'pane_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(232,113,141,1.0)',
-                interactive: true,
             }
-        }
+        });
+
+        cluster_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5.addLayer(layer_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5);
+        bounds_group.addLayer(layer_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5);
+        map.addLayer(cluster_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5);
+
+        // CAPA PUNTUAL 4
         map.createPane('pane_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6');
         map.getPane('pane_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6').style.zIndex = 406;
         map.getPane('pane_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6').style['mix-blend-mode'] = 'normal';
+
         var layer_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6 = new L.geoJson(json_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6, {
             attribution: '',
             interactive: true,
@@ -610,98 +319,20 @@
             pane: 'pane_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6',
             onEachFeature: pop_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6,
             pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
+                var context = { feature: feature, variables: {} };
                 return L.circleMarker(latlng, style_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6_0(feature));
-            },
-        });
-        bounds_group.addLayer(layer_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6);
-        map.addLayer(layer_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6);
-        function pop_LUMINARIASPANCHIMALCO_7(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Name'] !== null ? autolinker.link(String(feature.properties['Name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['description'] !== null ? autolinker.link(String(feature.properties['description']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['timestamp'] !== null ? autolinker.link(String(feature.properties['timestamp']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['begin'] !== null ? autolinker.link(String(feature.properties['begin']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['end'] !== null ? autolinker.link(String(feature.properties['end']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['altitudeMode'] !== null ? autolinker.link(String(feature.properties['altitudeMode']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['tessellate'] !== null ? autolinker.link(String(feature.properties['tessellate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['extrude'] !== null ? autolinker.link(String(feature.properties['extrude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['visibility'] !== null ? autolinker.link(String(feature.properties['visibility']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['drawOrder'] !== null ? autolinker.link(String(feature.properties['drawOrder']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['icon'] !== null ? autolinker.link(String(feature.properties['icon']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Potencia_W_'] !== null ? autolinker.link(String(feature.properties['Potencia_W_']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Cliente_Municipio'] !== null ? autolinker.link(String(feature.properties['Cliente_Municipio']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Latitude'] !== null ? autolinker.link(String(feature.properties['Latitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Longitude'] !== null ? autolinker.link(String(feature.properties['Longitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['layer'] !== null ? autolinker.link(String(feature.properties['layer']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['path'] !== null ? autolinker.link(String(feature.properties['path']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_LUMINARIASPANCHIMALCO_7_0() {
-            return {
-                pane: 'pane_LUMINARIASPANCHIMALCO_7',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(114,155,111,1.0)',
-                interactive: true,
             }
-        }
+        });
+
+        cluster_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6.addLayer(layer_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6);
+        bounds_group.addLayer(layer_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6);
+        map.addLayer(cluster_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6);
+
+        // CAPA PUNTUAL 5
         map.createPane('pane_LUMINARIASPANCHIMALCO_7');
         map.getPane('pane_LUMINARIASPANCHIMALCO_7').style.zIndex = 407;
         map.getPane('pane_LUMINARIASPANCHIMALCO_7').style['mix-blend-mode'] = 'normal';
+
         var layer_LUMINARIASPANCHIMALCO_7 = new L.geoJson(json_LUMINARIASPANCHIMALCO_7, {
             attribution: '',
             interactive: true,
@@ -710,160 +341,20 @@
             pane: 'pane_LUMINARIASPANCHIMALCO_7',
             onEachFeature: pop_LUMINARIASPANCHIMALCO_7,
             pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
+                var context = { feature: feature, variables: {} };
                 return L.circleMarker(latlng, style_LUMINARIASPANCHIMALCO_7_0(feature));
-            },
+            }
         });
-        bounds_group.addLayer(layer_LUMINARIASPANCHIMALCO_7);
-        map.addLayer(layer_LUMINARIASPANCHIMALCO_7);
-        function pop_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Name'] !== null ? autolinker.link(String(feature.properties['Name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['description'] !== null ? autolinker.link(String(feature.properties['description']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['timestamp'] !== null ? autolinker.link(String(feature.properties['timestamp']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['begin'] !== null ? autolinker.link(String(feature.properties['begin']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['end'] !== null ? autolinker.link(String(feature.properties['end']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['altitudeMode'] !== null ? autolinker.link(String(feature.properties['altitudeMode']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['tessellate'] !== null ? autolinker.link(String(feature.properties['tessellate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['extrude'] !== null ? autolinker.link(String(feature.properties['extrude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['visibility'] !== null ? autolinker.link(String(feature.properties['visibility']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['drawOrder'] !== null ? autolinker.link(String(feature.properties['drawOrder']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['icon'] !== null ? autolinker.link(String(feature.properties['icon']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Tipo'] !== null ? autolinker.link(String(feature.properties['Tipo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Potencia'] !== null ? autolinker.link(String(feature.properties['Potencia']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Latitude'] !== null ? autolinker.link(String(feature.properties['Latitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Longitude'] !== null ? autolinker.link(String(feature.properties['Longitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
 
-        function style_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8_0(feature) {
-            switch(String(feature.properties['Tipo'])) {
-                case 'lED':
-                    return {
-                pane: 'pane_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(219,208,88,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Led':
-                    return {
-                pane: 'pane_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(228,62,109,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'LED':
-                    return {
-                pane: 'pane_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(121,34,202,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'LF':
-                    return {
-                pane: 'pane_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(95,203,107,1.0)',
-                interactive: true,
-            }
-                    break;
-                default:
-                    return {
-                pane: 'pane_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(109,175,203,1.0)',
-                interactive: true,
-            }
-                    break;
-            }
-        }
+        cluster_LUMINARIASPANCHIMALCO_7.addLayer(layer_LUMINARIASPANCHIMALCO_7);
+        bounds_group.addLayer(layer_LUMINARIASPANCHIMALCO_7);
+        map.addLayer(cluster_LUMINARIASPANCHIMALCO_7);
+
+        // CAPA PUNTUAL 6
         map.createPane('pane_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8');
         map.getPane('pane_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8').style.zIndex = 408;
         map.getPane('pane_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8').style['mix-blend-mode'] = 'normal';
+
         var layer_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8 = new L.geoJson(json_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8, {
             attribution: '',
             interactive: true,
@@ -872,185 +363,20 @@
             pane: 'pane_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8',
             onEachFeature: pop_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8,
             pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
+                var context = { feature: feature, variables: {} };
                 return L.circleMarker(latlng, style_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8_0(feature));
-            },
+            }
         });
-        bounds_group.addLayer(layer_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8);
-        map.addLayer(layer_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8);
-        function pop_LUMINARIASSANMARCOSDS_9(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['id'] !== null ? autolinker.link(String(feature.properties['id']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Name'] !== null ? autolinker.link(String(feature.properties['Name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['description'] !== null ? autolinker.link(String(feature.properties['description']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['timestamp'] !== null ? autolinker.link(String(feature.properties['timestamp']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['begin'] !== null ? autolinker.link(String(feature.properties['begin']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['end'] !== null ? autolinker.link(String(feature.properties['end']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['altitudeMode'] !== null ? autolinker.link(String(feature.properties['altitudeMode']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['tessellate'] !== null ? autolinker.link(String(feature.properties['tessellate']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['extrude'] !== null ? autolinker.link(String(feature.properties['extrude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['visibility'] !== null ? autolinker.link(String(feature.properties['visibility']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['drawOrder'] !== null ? autolinker.link(String(feature.properties['drawOrder']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['icon'] !== null ? autolinker.link(String(feature.properties['icon']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Folder_name'] !== null ? autolinker.link(String(feature.properties['Folder_name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Tipo_'] !== null ? autolinker.link(String(feature.properties['Tipo_']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Potencia_'] !== null ? autolinker.link(String(feature.properties['Potencia_']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Latitude'] !== null ? autolinker.link(String(feature.properties['Latitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Longitude'] !== null ? autolinker.link(String(feature.properties['Longitude']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['layer'] !== null ? autolinker.link(String(feature.properties['layer']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['path'] !== null ? autolinker.link(String(feature.properties['path']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
 
-        function style_LUMINARIASSANMARCOSDS_9_0(feature) {
-            switch(String(feature.properties['Tipo_'])) {
-                case 'HALURO':
-                    return {
-                pane: 'pane_LUMINARIASSANMARCOSDS_9',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(233,98,19,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Led':
-                    return {
-                pane: 'pane_LUMINARIASSANMARCOSDS_9',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(33,239,108,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'LF':
-                    return {
-                pane: 'pane_LUMINARIASSANMARCOSDS_9',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(188,235,107,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'LM':
-                    return {
-                pane: 'pane_LUMINARIASSANMARCOSDS_9',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(101,46,203,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'LS':
-                    return {
-                pane: 'pane_LUMINARIASSANMARCOSDS_9',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(50,167,234,1.0)',
-                interactive: true,
-            }
-                    break;
-                default:
-                    return {
-                pane: 'pane_LUMINARIASSANMARCOSDS_9',
-                radius: 4.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(204,61,151,1.0)',
-                interactive: true,
-            }
-                    break;
-            }
-        }
+        cluster_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8.addLayer(layer_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8);
+        bounds_group.addLayer(layer_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8);
+        map.addLayer(cluster_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8);
+
+        // CAPA PUNTUAL 7
         map.createPane('pane_LUMINARIASSANMARCOSDS_9');
         map.getPane('pane_LUMINARIASSANMARCOSDS_9').style.zIndex = 409;
         map.getPane('pane_LUMINARIASSANMARCOSDS_9').style['mix-blend-mode'] = 'normal';
+
         var layer_LUMINARIASSANMARCOSDS_9 = new L.geoJson(json_LUMINARIASSANMARCOSDS_9, {
             attribution: '',
             interactive: true,
@@ -1059,92 +385,158 @@
             pane: 'pane_LUMINARIASSANMARCOSDS_9',
             onEachFeature: pop_LUMINARIASSANMARCOSDS_9,
             pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
+                var context = { feature: feature, variables: {} };
                 return L.circleMarker(latlng, style_LUMINARIASSANMARCOSDS_9_0(feature));
-            },
+            }
         });
+
+        cluster_LUMINARIASSANMARCOSDS_9.addLayer(layer_LUMINARIASSANMARCOSDS_9);
         bounds_group.addLayer(layer_LUMINARIASSANMARCOSDS_9);
-        map.addLayer(layer_LUMINARIASSANMARCOSDS_9);
+        map.addLayer(cluster_LUMINARIASSANMARCOSDS_9);
+
+        // IMPORTANTE:
+        // En overlaysTree, para capas puntuales usá los clusters, no layer_...
         var overlaysTree = [
-        {label: '<b>Luminarias San Marcos</b>',  selectAllCheckbox: true, children: [
-            {label: 'LUMINARIAS SAN MARCOS DS<br /><table><tr><td style="text-align: center;"><img src="legend/LUMINARIASSANMARCOSDS_9_HALURO0.png" /></td><td>HALURO</td></tr><tr><td style="text-align: center;"><img src="legend/LUMINARIASSANMARCOSDS_9_Led1.png" /></td><td>Led</td></tr><tr><td style="text-align: center;"><img src="legend/LUMINARIASSANMARCOSDS_9_LF2.png" /></td><td>LF</td></tr><tr><td style="text-align: center;"><img src="legend/LUMINARIASSANMARCOSDS_9_LM3.png" /></td><td>LM</td></tr><tr><td style="text-align: center;"><img src="legend/LUMINARIASSANMARCOSDS_9_LS4.png" /></td><td>LS</td></tr><tr><td style="text-align: center;"><img src="legend/LUMINARIASSANMARCOSDS_9_5.png" /></td><td></td></tr></table>', layer: layer_LUMINARIASSANMARCOSDS_9},]},
-        {label: '<b>Luminarias Rosario de Mora</b>', collapsed: true, selectAllCheckbox: true, children: [
-            {label: 'GPS ROSARIO DE MORA 2025 — AP GPS ROSARIO DE MORA 2025_1.xlsx<br /><table><tr><td style="text-align: center;"><img src="legend/GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8_lED0.png" /></td><td>lED</td></tr><tr><td style="text-align: center;"><img src="legend/GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8_Led1.png" /></td><td>Led</td></tr><tr><td style="text-align: center;"><img src="legend/GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8_LED2.png" /></td><td>LED</td></tr><tr><td style="text-align: center;"><img src="legend/GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8_LF3.png" /></td><td>LF</td></tr><tr><td style="text-align: center;"><img src="legend/GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8_4.png" /></td><td></td></tr></table>', layer: layer_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8},]},
-        {label: '<b>Luminarias Panchimalco</b>', collapsed: true, selectAllCheckbox: true, children: [
-            {label: '<img src="legend/LUMINARIASPANCHIMALCO_7.png" /> LUMINARIAS PANCHIMALCO', layer: layer_LUMINARIASPANCHIMALCO_7},
-            {label: '<img src="legend/GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6.png" /> GPS AP PANCHIMALCO 2025 — AP GPS PANCHIMALCO 2025_1.xlsx', layer: layer_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6},
-            {label: '<img src="legend/GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5.png" /> GPS AP PANCHIMALCO 2025 — AP GPS PANCHIMALCO 2025_2.xlsx', layer: layer_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5},]},
-        {label: '<b>Luminarias Santiago Texacuangos</b>', collapsed: true, selectAllCheckbox: true, children: [
-            {label: '<img src="legend/APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4.png" /> AP GPS SANTIAGO TEXACUANGOS 2025 — AP GPS SANTIAGO TEXACUANGOS_2025.xlsx', layer: layer_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4},]},
-        {label: '<b>Tracks Santo Tomas</b>', collapsed: true, selectAllCheckbox: true, children: [
-            {label: '<img src="legend/APGPSSANTOTOMAS2025_1xlsx_3.png" /> AP GPS SANTO TOMAS 2025_1.xlsx', layer: layer_APGPSSANTOTOMAS2025_1xlsx_3},]},
-            {label: '<img src="legend/SAN_SALVADOR_SUR_2.png" /> SAN_SALVADOR_SUR', layer: layer_SAN_SALVADOR_SUR_2},
-            {label: "Google Satellite", layer: layer_GoogleSatellite_1},
-            {label: "Google Labels", layer: layer_GoogleLabels_0},]
-        var lay = L.control.layers.tree(null, overlaysTree,{
-            //namedToggle: true,
-            //selectorBack: false,
-            //closedSymbol: '&#8862; &#x1f5c0;',
-            //openedSymbol: '&#8863; &#x1f5c1;',
-            //collapseAll: 'Collapse all',
-            //expandAll: 'Expand all',
-            collapsed: false, 
+            {
+                label: '<b>Luminarias San Marcos</b>',
+                selectAllCheckbox: true,
+                children: [
+                    {
+                        label: 'LUMINARIAS SAN MARCOS DS',
+                        layer: cluster_LUMINARIASSANMARCOSDS_9
+                    }
+                ]
+            },
+            {
+                label: '<b>Tracks Rosario de Mora</b>',
+                collapsed: true,
+                selectAllCheckbox: true,
+                children: [
+                    {
+                        label: 'GPS ROSARIO DE MORA 2025',
+                        layer: cluster_GPSROSARIODEMORA2025APGPSROSARIODEMORA2025_1xlsx_8
+                    }
+                ]
+            },
+            {
+                label: '<b>Luminarias Panchimalco</b>',
+                collapsed: true,
+                selectAllCheckbox: true,
+                children: [
+                    {
+                        label: 'LUMINARIAS PANCHIMALCO',
+                        layer: cluster_LUMINARIASPANCHIMALCO_7
+                    }
+                ]
+            },
+            {
+                label: '<b>Tracks Panchimalco</b>',
+                collapsed: true,
+                selectAllCheckbox: true,
+                children: [
+                    {
+                        label: 'GPS AP PANCHIMALCO 2025_1',
+                        layer: cluster_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_1xlsx_6
+                    },
+                    {
+                        label: 'GPS AP PANCHIMALCO 2025_2',
+                        layer: cluster_GPSAPPANCHIMALCO2025APGPSPANCHIMALCO2025_2xlsx_5
+                    }
+                ]
+            },
+            {
+                label: '<b>Luminarias Santiago Texacuangos</b>',
+                collapsed: true,
+                selectAllCheckbox: true,
+                children: [
+                    {
+                        label: 'AP GPS SANTIAGO TEXACUANGOS 2025',
+                        layer: cluster_APGPSSANTIAGOTEXACUANGOS2025APGPSSANTIAGOTEXACUANGOS_2025xlsx_4
+                    }
+                ]
+            },
+            {
+                label: '<b>Tracks Santo Tomas</b>',
+                collapsed: true,
+                selectAllCheckbox: true,
+                children: [
+                    {
+                        label: 'AP GPS SANTO TOMAS 2025_1',
+                        layer: cluster_APGPSSANTOTOMAS2025_1xlsx_3
+                    }
+                ]
+            },
+            {
+                label: 'SAN_SALVADOR_SUR',
+                layer: layer_SAN_SALVADOR_SUR_2
+            },
+            {
+                label: "Google Satellite",
+                layer: layer_GoogleSatellite_1
+            },
+            {
+                label: "Google Labels",
+                layer: layer_GoogleLabels_0
+            }
+        ];
+
+        var lay = L.control.layers.tree(null, overlaysTree, {
+            collapsed: false
         });
         lay.addTo(map);
-		document.addEventListener("DOMContentLoaded", function() {
-            // set new Layers List height which considers toggle icon
+
+        document.addEventListener("DOMContentLoaded", function () {
             function newLayersListHeight() {
                 var layerScrollbarElement = document.querySelector('.leaflet-control-layers-scrollbar');
                 if (layerScrollbarElement) {
                     var layersListElement = document.querySelector('.leaflet-control-layers-list');
-                    var originalHeight = layersListElement.style.height 
-                        || window.getComputedStyle(layersListElement).height;
+                    var originalHeight = layersListElement.style.height || window.getComputedStyle(layersListElement).height;
                     var newHeight = parseFloat(originalHeight) - 50;
                     layersListElement.style.height = newHeight + 'px';
                 }
             }
+
             var isLayersListExpanded = true;
             var controlLayersElement = document.querySelector('.leaflet-control-layers');
             var toggleLayerControl = document.querySelector('.leaflet-control-layers-toggle');
-            // toggle Collapsed/Expanded and apply new Layers List height
-            toggleLayerControl.addEventListener('click', function() {
+
+            toggleLayerControl.addEventListener('click', function () {
                 if (isLayersListExpanded) {
                     controlLayersElement.classList.remove('leaflet-control-layers-expanded');
                 } else {
                     controlLayersElement.classList.add('leaflet-control-layers-expanded');
                 }
                 isLayersListExpanded = !isLayersListExpanded;
-                newLayersListHeight()
-            });	
-			// apply new Layers List height if toggle layerstree
-			if (controlLayersElement) {
-				controlLayersElement.addEventListener('click', function(event) {
-					var toggleLayerHeaderPointer = event.target.closest('.leaflet-layerstree-header-pointer span');
-					if (toggleLayerHeaderPointer) {
-						newLayersListHeight();
-					}
-				});
-			}
-            // Collapsed/Expanded at Start to apply new height
-            setTimeout(function() {
+                newLayersListHeight();
+            });
+
+            if (controlLayersElement) {
+                controlLayersElement.addEventListener('click', function (event) {
+                    var toggleLayerHeaderPointer = event.target.closest('.leaflet-layerstree-header-pointer span');
+                    if (toggleLayerHeaderPointer) {
+                        newLayersListHeight();
+                    }
+                });
+            }
+
+            setTimeout(function () {
                 toggleLayerControl.click();
             }, 10);
-            setTimeout(function() {
+
+            setTimeout(function () {
                 toggleLayerControl.click();
             }, 10);
-            // Collapsed touch/small screen
+
             var isSmallScreen = window.innerWidth < 650;
             if (isSmallScreen) {
-                setTimeout(function() {
+                setTimeout(function () {
                     controlLayersElement.classList.remove('leaflet-control-layers-expanded');
                     isLayersListExpanded = !isLayersListExpanded;
                 }, 500);
-            }  
-        });       
+            }
+        });
+
         setBounds();
-        </script>        
-    </body>
+    </script>
+</body>
 </html>
