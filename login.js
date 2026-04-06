@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       showGlobalAlert('✓ Acceso concedido. Redirigiendo...', 'success');
-      setTimeout(() => { window.location.href = 'luminarias/luminarias.html'; }, 900);s
+      setTimeout(() => { window.location.href = 'mapas/mapa.html'; }, 900);s
 
     } catch (err) {
       showGlobalAlert('Error de conexión. Intenta de nuevo.');
