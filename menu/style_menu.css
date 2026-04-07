@@ -1,0 +1,88 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #e7e7e7, #0f172a);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+.contenedor {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  text-align: center;
+  width: 90%;
+  max-width: 700px;
+}
+
+h1 {
+  margin-bottom: 25px;
+  font-size: 28px;
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+}
+
+.btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 14px 22px;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: 0.3s ease;
+  min-width: 150px;
+  justify-content: center;
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+  background: #1d4ed8;
+}
+
+.icono {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.btn-verde {
+  background: #16a34a;
+}
+
+.btn-verde:hover {
+  background: #15803d;
+}
+
+.btn-rojo {
+  background: #dc2626;
+}
+
+.btn-rojo:hover {
+  background: #b91c1c;
+}
+
+.btn-gris {
+  background: #475569;
+}
+
+.btn-gris:hover {
+  background: #334155;
+}
