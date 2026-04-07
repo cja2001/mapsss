@@ -52,7 +52,7 @@ a.btn {
   justify-content: center;
 }
 
-.btn:hover {
+a.btn:hover {
   transform: translateY(-3px);
   background: #1d4ed8;
 }
