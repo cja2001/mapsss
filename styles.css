@@ -5,7 +5,7 @@
   html, body {
     height: 100%;
     font-family: 'DM Sans', sans-serif;
-    background-image: url("sur.webp");
+    background-image: url("imglogin.jpg.jpeg");
     background-size: cover;
     background-position: center;
     display: flex;
@@ -44,7 +44,7 @@
   .left-bg {
     position: absolute;
     inset: 0;
-    background:  url('sansalvador sur.png') center/cover no-repeat;
+    background:  url('sur.webp') center/cover no-repeat;
   }
 
   .left-content {
