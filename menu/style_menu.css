@@ -20,6 +20,10 @@ a.btn {
   text-decoration: none;
 }
 
+btn-link {
+  text-decoration: none;
+}
+
 .contenedor {
   background: rgba(96, 120, 197, 0.719);
   padding: 40px;
