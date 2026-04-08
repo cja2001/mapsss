@@ -6,7 +6,9 @@
 }
 
 body {
-  background: linear-gradient(135deg, #e7e7e7, #0f172a);
+  background-image: url("fondo.jpg");
+  background-size: cover;
+  background-position: center;
   min-height: 100vh;
   display: flex;
   justify-content: center;
