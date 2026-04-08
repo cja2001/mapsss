@@ -14,6 +14,10 @@ body {
   color: white;
 }
 
+a.btn {
+  text-decoration: none;
+}
+
 .contenedor {
   background: rgba(255, 255, 255, 0.08);
   padding: 40px;
@@ -36,7 +40,7 @@ h1 {
   justify-content: center;
 }
 
-a.btn {
+.btn {
   background: #2563eb;
   color: white;
   border: none;
