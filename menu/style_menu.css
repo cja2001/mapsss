@@ -9,6 +9,7 @@ body {
   background-image: url("fondo.jpg");
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -16,22 +17,14 @@ body {
   color: white;
 }
 
-a.btn {
-  text-decoration: none;
-}
-
-.btn-link {
-  text-decoration: none;
-}
-
 .contenedor {
-  background: rgba(96, 120, 197, 0.719);
+  background: rgba(96, 120, 197, 0.72);
   padding: 40px;
   border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   text-align: center;
   width: 90%;
-  max-width: 700px;
+  max-width: 760px;
 }
 
 h1 {
@@ -42,57 +35,40 @@ h1 {
 .botones {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 18px;
   justify-content: center;
 }
 
 .btn {
   background: #2563eb;
   color: white;
+  text-decoration: none;
   border: none;
   padding: 14px 22px;
   border-radius: 12px;
   font-size: 16px;
-  cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  transition: 0.3s ease;
-  min-width: 150px;
   justify-content: center;
+  gap: 10px;
+  min-width: 220px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
-a.btn:hover {
+.btn:hover {
   transform: translateY(-3px);
   background: #1d4ed8;
+}
+
+.btn:visited,
+.btn:active {
+  color: white;
+  text-decoration: none;
 }
 
 .icono {
   width: 20px;
   height: 20px;
   object-fit: contain;
-}
-
-.btn-verde {
-  background:  #1d4ed8;
-}
-
-.btn-verde:hover {
-  background:  #1d4ed8;
-}
-
-.btn-rojo {
-  background:  #1d4ed8;
-}
-
-.btn-rojo:hover {
-  background:  #1d4ed8;
-}
-
-.btn-gris {
-  background:  #1d4ed8;
-}
-
-.btn-gris:hover {
-  background:  #1d4ed8;
 }
