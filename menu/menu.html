@@ -15,10 +15,16 @@
     <div class="botones">
 
 
-    <a href="luminarias/luminarias.html" class="btn">
+    <button class="btn"  onclick="irpagina('luminarias.html')">
         <img src="iconos/luminarias.png" class="icono">
         Censo luminarias
-      </a>
+      </button>
+
+      <script>
+        function irpagina(url) {
+          window.location.href = luminarias/luminarias.html;
+        }
+      </script>
 
      
 
