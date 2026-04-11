@@ -82,10 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showGlobalAlert('✓ Acceso concedido. Redirigiendo...', 'success');
       setTimeout(() => { window.location.href = 'menu/menu.html'; }, 900);s
 
-    } catch (err) {
-      showGlobalAlert('Error de conexión. Intenta de nuevo.');
-      setLoading(false);
-    }
+    
   }
 
   // ─── Event listeners ───────────────────────────────────────────────────────
