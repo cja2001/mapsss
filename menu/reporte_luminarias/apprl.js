@@ -81,7 +81,7 @@ function obtenerNombreMunicipio(props) {
 
 // CARGAR MUNICIPIOS
 async function cargarMunicipios() {
-  const datosMunicipios = await cargarGeoJSON('municipios.geojson');
+  const datosMunicipios = await cargarGeoJSON('Distritos SSS.geojson');
 
   capaMunicipios = L.geoJSON(datosMunicipios, {
     style: function () {
