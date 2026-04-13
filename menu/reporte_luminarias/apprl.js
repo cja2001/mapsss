@@ -4,7 +4,7 @@ const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
 const map = L.map('map').setView([13.692, -89.191], 10);
 
-// Capas base
+// CAPAS BASE
 const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; OpenStreetMap'
@@ -18,8 +18,10 @@ const satelital = L.tileLayer(
   }
 );
 
+// CAPA BASE POR DEFECTO
 satelital.addTo(map);
 
+// CAPAS PARA EL CONTROL
 const baseMaps = {
   "Mapa normal": osm,
   "Satelital": satelital
@@ -31,6 +33,7 @@ let capaMunicipios = null;
 let capaLuminarias = null;
 let controlCapas = null;
 
+// COLOR SEGÚN ESTADO
 function obtenerColorPorEstado(estado) {
   const valor = (estado || '').toString().toLowerCase().trim();
 
@@ -47,6 +50,7 @@ function obtenerColorPorEstado(estado) {
   }
 }
 
+// CARGAR GEOJSON LOCAL
 async function cargarGeoJSON(url) {
   const response = await fetch(url);
   const texto = await response.text();
@@ -55,9 +59,14 @@ async function cargarGeoJSON(url) {
     throw new Error(`No se pudo cargar ${url}`);
   }
 
-  return JSON.parse(texto);
+  try {
+    return JSON.parse(texto);
+  } catch (e) {
+    throw new Error(`El archivo ${url} no tiene un JSON válido.`);
+  }
 }
 
+// OBTENER NOMBRE DEL MUNICIPIO
 function obtenerNombreMunicipio(props) {
   return (
     props.nombre ||
@@ -70,8 +79,9 @@ function obtenerNombreMunicipio(props) {
   );
 }
 
+// CARGAR MUNICIPIOS
 async function cargarMunicipios() {
-  const datosMunicipios = await cargarGeoJSON('Distritos SSS.geojson');
+  const datosMunicipios = await cargarGeoJSON('municipios.geojson');
 
   capaMunicipios = L.geoJSON(datosMunicipios, {
     style: function () {
@@ -82,45 +92,91 @@ async function cargarMunicipios() {
         fillOpacity: 0
       };
     },
+
     onEachFeature: function (feature, layer) {
       const props = feature.properties || {};
       const nombreMunicipio = obtenerNombreMunicipio(props);
 
+      // ETIQUETA VISIBLE
       layer.bindTooltip(nombreMunicipio, {
         permanent: true,
         direction: 'center',
         className: 'etiqueta-municipio'
       });
 
+      // POPUP
       let contenido = `<strong>${nombreMunicipio}</strong>`;
       Object.keys(props).forEach(clave => {
         contenido += `<br>${clave}: ${props[clave]}`;
       });
 
       layer.bindPopup(contenido);
+
+      // RESALTAR AL PASAR EL MOUSE
+      layer.on({
+        mouseover: function (e) {
+          e.target.setStyle({
+            weight: 4,
+            color: '#ffffff'
+          });
+        },
+        mouseout: function (e) {
+          capaMunicipios.resetStyle(e.target);
+        }
+      });
     }
   }).addTo(map);
 
   overlays["Límites municipales"] = capaMunicipios;
 }
 
+// CARGAR LUMINARIAS DESDE SUPABASE EN BLOQUES
 async function cargarLuminarias() {
   if (capaLuminarias) {
     map.removeLayer(capaLuminarias);
   }
 
-  const { data, error } = await supabaseClient
-    .from('luminarias')
-    .select('id, potencia, lat, lng, estado, distrito, tipo');
-
-  if (error) {
-    throw error;
-  }
-
   capaLuminarias = L.layerGroup();
 
-  data.forEach(item => {
-    if (item.lat == null || item.lng == null) return;
+  let todosLosDatos = [];
+  let desde = 0;
+  const bloque = 1000;
+  let hayMas = true;
+
+  while (hayMas) {
+    const { data, error } = await supabaseClient
+      .from('luminarias')
+      .select('id, potencia, lat, lng, estado, distrito, tipo')
+      .range(desde, desde + bloque - 1);
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      hayMas = false;
+      break;
+    }
+
+    todosLosDatos = todosLosDatos.concat(data);
+
+    if (data.length < bloque) {
+      hayMas = false;
+    } else {
+      desde += bloque;
+    }
+  }
+
+  console.log('Total de registros traídos desde Supabase:', todosLosDatos.length);
+
+  let dibujados = 0;
+  let omitidos = 0;
+
+  todosLosDatos.forEach(item => {
+    if (item.lat == null || item.lng == null) {
+      omitidos++;
+      return;
+    }
 
     const color = obtenerColorPorEstado(item.estado);
 
@@ -137,7 +193,9 @@ async function cargarLuminarias() {
       Potencia: ${item.potencia || 'N/D'}<br>
       Estado: ${item.estado || 'N/D'}<br>
       Distrito: ${item.distrito || 'N/D'}<br>
-      Tipo: ${item.tipo || 'N/D'}<br><br>
+      Tipo: ${item.tipo || 'N/D'}<br>
+      Lat: ${item.lat}<br>
+      Lng: ${item.lng}<br><br>
       <button onclick="editarEstado(${item.id}, '${(item.estado || '').replace(/'/g, "\\'")}')">
         Editar estado
       </button>
@@ -145,12 +203,17 @@ async function cargarLuminarias() {
 
     marker.bindPopup(popup);
     capaLuminarias.addLayer(marker);
+    dibujados++;
   });
+
+  console.log('Puntos dibujados:', dibujados);
+  console.log('Puntos omitidos:', omitidos);
 
   capaLuminarias.addTo(map);
   overlays["Luminarias"] = capaLuminarias;
 }
 
+// EDITAR ESTADO
 async function editarEstado(id, estadoActual) {
   const nuevoEstado = prompt(
     `Estado actual: ${estadoActual}\nEscribe el nuevo estado:`,
@@ -182,6 +245,7 @@ async function editarEstado(id, estadoActual) {
   }).addTo(map);
 }
 
+// INICIAR MAPA
 async function iniciarMapa() {
   try {
     await cargarMunicipios();
@@ -205,8 +269,12 @@ async function iniciarMapa() {
       map.fitBounds(grupoGeneral.getBounds(), { padding: [20, 20] });
     }
   } catch (error) {
-    console.error(error);
+    console.error('Error al iniciar el mapa:', error);
     alert('Error al iniciar el mapa: ' + error.message);
+
+    controlCapas = L.control.layers(baseMaps, overlays, {
+      collapsed: true
+    }).addTo(map);
   }
 }
 
