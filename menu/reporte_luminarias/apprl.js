@@ -1,5 +1,5 @@
-const supabaseUrl = 'https://TU-PROYECTO.supabase.co';
-const supabaseAnonKey = 'TU_ANON_KEY';
+const supabaseUrl = 'https://nwnlqaohxzxflmxwrtyy.supabase.co';
+const supabaseAnonKey = 'sb_publishable_XjDNrEjB-cbw1_zOlmOCpQ_WCmFjSXr';
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
 const map = L.map('map').setView([13.692, -89.191], 10);
@@ -26,6 +26,7 @@ const baseMaps = {
 };
 
 const overlays = {};
+
 let capaMunicipios = null;
 let capaLuminarias = null;
 let controlCapas = null;
@@ -35,14 +36,14 @@ function obtenerColorPorEstado(estado) {
 
   switch (valor) {
     case 'buena':
-      return 'green';
+      return '#22c55e'; // verde
     case 'danada':
     case 'dañada':
-      return 'red';
+      return '#ef4444'; // rojo
     case 'mantenimiento':
-      return 'yellow';
+      return '#eab308'; // amarillo
     default:
-      return 'gray';
+      return '#6b7280'; // gris
   }
 }
 
@@ -110,7 +111,7 @@ async function cargarLuminarias() {
 
   const { data, error } = await supabaseClient
     .from('luminarias')
-    .select('id, potencia, lat, lng, estado, distrito, tipo, observacion');
+    .select('id, potencia, lat, lng, estado, distrito, tipo');
 
   if (error) {
     throw error;
@@ -124,21 +125,22 @@ async function cargarLuminarias() {
     const color = obtenerColorPorEstado(item.estado);
 
     const marker = L.circleMarker([item.lat, item.lng], {
-      radius: 8,
+      radius: 7,
       color: color,
       fillColor: color,
-      fillOpacity: 0.85,
+      fillOpacity: 0.9,
       weight: 1
     });
 
-    let popup = `
+    const popup = `
       <strong>Luminaria ${item.id}</strong><br>
-      Estado: ${item.estado || 'Sin estado'}<br>
       Potencia: ${item.potencia || 'N/D'}<br>
+      Estado: ${item.estado || 'N/D'}<br>
       Distrito: ${item.distrito || 'N/D'}<br>
-      Tipo: ${item.tipo || 'N/D'}<br>
-      Observación: ${item.observacion || 'N/D'}<br><br>
-      <button onclick="editarEstado(${item.id}, '${item.estado || ''}')">Editar estado</button>
+      Tipo: ${item.tipo || 'N/D'}<br><br>
+      <button onclick="editarEstado(${item.id}, '${(item.estado || '').replace(/'/g, "\\'")}')">
+        Editar estado
+      </button>
     `;
 
     marker.bindPopup(popup);
@@ -159,10 +161,7 @@ async function editarEstado(id, estadoActual) {
 
   const { error } = await supabaseClient
     .from('luminarias')
-    .update({
-      estado: nuevoEstado.trim(),
-      fecha_actualizacion: new Date().toISOString()
-    })
+    .update({ estado: nuevoEstado.trim() })
     .eq('id', id);
 
   if (error) {
@@ -171,6 +170,7 @@ async function editarEstado(id, estadoActual) {
   }
 
   alert('Estado actualizado correctamente.');
+
   await cargarLuminarias();
 
   if (controlCapas) {
@@ -210,5 +210,5 @@ async function iniciarMapa() {
   }
 }
 
-iniciarMapa();
 window.editarEstado = editarEstado;
+iniciarMapa();
