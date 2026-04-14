@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       showGlobalAlert('✓ Acceso concedido. Redirigiendo...', 'success');
-      setTimeout(() => { window.location.href = 'menu/menu.html'; }, 300);s
+      setTimeout(() => { window.location.href = 'menu/menu.html'; }, 300);
 
     } catch (err) {
       console.error(err);
