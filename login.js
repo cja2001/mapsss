@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
 
   // ─── Supabase ──────────────────────────────────────────────────────────────
@@ -22,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
       $(`error-${k}`).textContent = '';
       $(k).classList.remove('input-error');
     });
+
     const alert = $('alert-global');
     alert.textContent = '';
     alert.className = 'alert';
@@ -44,13 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (togglePassword && passwordInput) {
     togglePassword.addEventListener('click', () => {
-      const isPassword = passwordInput.getAttribute('type') === 'password';
+      const esPassword = passwordInput.getAttribute('type') === 'password';
 
-      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
-      togglePassword.textContent = isPassword ? '🙈' : '👁️';
+      passwordInput.setAttribute('type', esPassword ? 'text' : 'password');
+      togglePassword.textContent = esPassword ? '🙈' : '👁️';
       togglePassword.setAttribute(
         'aria-label',
-        isPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+        esPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
       );
     });
   }
@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showFieldError('usuario', 'El usuario es requerido.');
       ok = false;
     }
+
     if (!password) {
       showFieldError('password', 'La contraseña es requerida.');
       ok = false;
@@ -72,12 +73,63 @@ document.addEventListener('DOMContentLoaded', () => {
       showFieldError('password', 'Mínimo 6 caracteres.');
       ok = false;
     }
+
     return ok;
+  }
+
+  // ─── Obtener rol desde tabla usuarios + roles ─────────────────────────────
+  async function obtenerRolUsuario(authUserId) {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select(`
+        activo,
+        roles (
+          nombre
+        )
+      `)
+      .eq('auth_user_id', authUserId)
+      .single();
+
+    if (error) {
+      throw new Error('No se pudo obtener el perfil del usuario.');
+    }
+
+    if (!data) {
+      throw new Error('No se encontró el usuario en la tabla de perfiles.');
+    }
+
+    if (!data.activo) {
+      throw new Error('Tu usuario está inactivo.');
+    }
+
+    const rol = data.roles?.nombre;
+
+    if (!rol) {
+      throw new Error('El usuario no tiene un rol asignado.');
+    }
+
+    return rol;
+  }
+
+  // ─── Redirección por rol ───────────────────────────────────────────────────
+  function redirigirSegunRol(rol) {
+    if (rol === 'admin') {
+      window.location.href = 'menu/menu.html';
+      return;
+    }
+
+    if (rol === 'editor_luminarias') {
+      window.location.href = 'menu/reporte_luminarias.html';
+      return;
+    }
+
+    throw new Error('No tienes permisos para acceder al sistema.');
   }
 
   // ─── Lógica principal ──────────────────────────────────────────────────────
   async function handleLogin() {
     clearErrors();
+
     if (!validate()) return;
 
     setLoading(true);
@@ -86,26 +138,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = $('password').value;
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      // 1) Login
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-      if (error) {
-        const msg = error.message.includes('Invalid login credentials')
+      if (loginError) {
+        const msg = loginError.message.includes('Invalid login credentials')
           ? 'Credenciales incorrectas.'
-          : error.message;
+          : loginError.message;
 
         showGlobalAlert(msg);
         setLoading(false);
         return;
       }
 
+      // 2) Obtener usuario autenticado
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !authData.user) {
+        showGlobalAlert('No se pudo obtener la sesión del usuario.');
+        setLoading(false);
+        return;
+      }
+
+      // 3) Obtener rol
+      const rol = await obtenerRolUsuario(authData.user.id);
+
       showGlobalAlert('✓ Acceso concedido. Redirigiendo...', 'success');
+
+      // 4) Redirigir según rol
       setTimeout(() => {
-        window.location.href = 'menu/menu.html';
+        try {
+          redirigirSegunRol(rol);
+        } catch (err) {
+          console.error(err);
+          showGlobalAlert(err.message || 'No autorizado.');
+          setLoading(false);
+        }
       }, 300);
 
     } catch (err) {
       console.error(err);
-      showGlobalAlert('Error de conexión. Intenta de nuevo.');
+      showGlobalAlert(err.message || 'Error de conexión. Intenta de nuevo.');
       setLoading(false);
     }
   }
