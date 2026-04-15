@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', () => {
 
   // ─── Supabase ──────────────────────────────────────────────────────────────
@@ -37,10 +38,27 @@ document.addEventListener('DOMContentLoaded', () => {
     alert.className = `alert alert-${type}`;
   }
 
+  // ─── Mostrar / ocultar contraseña ──────────────────────────────────────────
+  const togglePassword = $('togglePassword');
+  const passwordInput = $('password');
+
+  if (togglePassword && passwordInput) {
+    togglePassword.addEventListener('click', () => {
+      const isPassword = passwordInput.getAttribute('type') === 'password';
+
+      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+      togglePassword.textContent = isPassword ? '🙈' : '👁️';
+      togglePassword.setAttribute(
+        'aria-label',
+        isPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+      );
+    });
+  }
+
   // ─── Validación cliente ────────────────────────────────────────────────────
   function validate() {
     let ok = true;
-    const usuario  = $('usuario').value.trim();
+    const usuario = $('usuario').value.trim();
     const password = $('password').value;
 
     if (!usuario) {
@@ -64,23 +82,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setLoading(true);
 
-    const email    = $('usuario').value.trim();
+    const email = $('usuario').value.trim();
     const password = $('password').value;
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
         const msg = error.message.includes('Invalid login credentials')
           ? 'Credenciales incorrectas.'
           : error.message;
+
         showGlobalAlert(msg);
         setLoading(false);
         return;
       }
 
       showGlobalAlert('✓ Acceso concedido. Redirigiendo...', 'success');
-      setTimeout(() => { window.location.href = 'menu/menu.html'; }, 300);
+      setTimeout(() => {
+        window.location.href = 'menu/menu.html';
+      }, 300);
 
     } catch (err) {
       console.error(err);
@@ -93,7 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-login').addEventListener('click', handleLogin);
 
   ['usuario', 'password'].forEach(id => {
-    $(id).addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+    $(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
   });
 
 });
