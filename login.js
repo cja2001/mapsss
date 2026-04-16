@@ -79,37 +79,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ─── Obtener rol desde tabla usuarios + roles ─────────────────────────────
   async function obtenerRolUsuario(authUserId) {
-    const { data, error } = await supabase
-      .from('usuarios')
-      .select(`
-        activo,
-        roles (
-          nombre
-        )
-      `)
-      .eq('auth_user_id', authUserId)
-      .single();
+  // 1. Buscar perfil del usuario
+  const { data: perfil, error: perfilError } = await supabase
+    .from('usuarios')
+    .select('activo, rol_id, email, auth_user_id')
+    .eq('auth_user_id', authUserId)
+    .single();
 
-    if (error) {
-      throw new Error('No se pudo obtener el perfil del usuario.');
-    }
+  console.log('perfil:', perfil);
+  console.log('perfilError:', perfilError);
 
-    if (!data) {
-      throw new Error('No se encontró el usuario en la tabla de perfiles.');
-    }
-
-    if (!data.activo) {
-      throw new Error('Tu usuario está inactivo.');
-    }
-
-    const rol = data.roles?.nombre;
-
-    if (!rol) {
-      throw new Error('El usuario no tiene un rol asignado.');
-    }
-
-    return rol;
+  if (perfilError || !perfil) {
+    throw new Error('No se pudo obtener el perfil del usuario.');
   }
+
+  if (!perfil.activo) {
+    throw new Error('Tu usuario está inactivo.');
+  }
+
+  // 2. Buscar el nombre del rol
+  const { data: rolData, error: rolError } = await supabase
+    .from('roles')
+    .select('nombre')
+    .eq('id', perfil.rol_id)
+    .single();
+
+  console.log('rolData:', rolData);
+  console.log('rolError:', rolError);
+
+  if (rolError || !rolData) {
+    throw new Error('No se pudo obtener el rol del usuario.');
+  }
+
+  return rolData.nombre;
+}
 
   // ─── Redirección por rol ───────────────────────────────────────────────────
   function redirigirSegunRol(rol) {
