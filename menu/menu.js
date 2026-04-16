@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnLogout = document.getElementById('btn-logout');
 
   if (btnLogout) {
-    btnLogout.addEventListener('click', async () => {
+    btnLogout.addEventListener('click', async (e) => {
       await cerrarSesion();
     });
   }
