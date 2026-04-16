@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (rol === 'editor_luminarias') {
-      window.location.href = 'menu/reporte_luminarias.html';
+      window.location.href = 'menu/rluminarias.html';
       return;
     }
 
