@@ -72,3 +72,12 @@ h1 {
   height: 20px;
   object-fit: contain;
 }
+.acciones-menu {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.btn-logout {
+  width: 250px; /* opcional, para que se vea uniforme */
+}
