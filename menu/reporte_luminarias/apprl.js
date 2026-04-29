@@ -184,7 +184,7 @@ async function cargarLuminarias() {
       radius: 4,
       color: color,
       fillColor: color,
-      fillOpacity: 0.1,
+      fillOpacity: 0.10,
       weight: 1
     });
 
