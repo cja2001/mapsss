@@ -181,10 +181,10 @@ async function cargarLuminarias() {
     const color = obtenerColorPorEstado(item.estado);
 
     const marker = L.circleMarker([item.lat, item.lng], {
-      radius: 4,
+      radius: 7,
       color: color,
       fillColor: color,
-      fillOpacity: 0.10,
+      fillOpacity: 0.9,
       weight: 1
     });
 
