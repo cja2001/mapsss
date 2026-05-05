@@ -2,7 +2,6 @@ const supabaseUrl = 'https://nwnlqaohxzxflmxwrtyy.supabase.co';
 const supabaseAnonKey = 'sb_publishable_XjDNrEjB-cbw1_zOlmOCpQ_WCmFjSXr';
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-// 🔥 RENDIMIENTO PARA MUCHOS PUNTOS
 const map = L.map('map', {
   preferCanvas: true
 }).setView([13.692, -89.191], 10);
@@ -37,7 +36,7 @@ function obtenerColorPorTipo(tipo) {
   return '#6b7280';
 }
 
-// 📊 PANEL DE CONTEO
+// 📊 PANEL
 const panelConteo = L.control({ position: 'topright' });
 
 panelConteo.onAdd = function () {
@@ -51,8 +50,14 @@ panelConteo.onAdd = function () {
   return div;
 };
 
-// 📊 ACTUALIZAR CONTEO
+// 📊 ACTUALIZAR CONTEO (SIN CRASH)
 function actualizarConteo(datos) {
+
+  const elLed = document.getElementById('count-led');
+  const elMercurio = document.getElementById('count-mercurio');
+  const elFluorescente = document.getElementById('count-fluorescente');
+
+  if (!elLed || !elMercurio || !elFluorescente) return;
 
   let led = 0;
   let mercurio = 0;
@@ -66,12 +71,12 @@ function actualizarConteo(datos) {
     else if (t === 'fluorescente' || t === 'fluoresente') fluorescente++;
   });
 
-  document.getElementById('count-led').textContent = `LED: ${led}`;
-  document.getElementById('count-mercurio').textContent = `Mercurio: ${mercurio}`;
-  document.getElementById('count-fluorescente').textContent = `Fluorescente: ${fluorescente}`;
+  elLed.textContent = `LED: ${led}`;
+  elMercurio.textContent = `Mercurio: ${mercurio}`;
+  elFluorescente.textContent = `Fluorescente: ${fluorescente}`;
 }
 
-// 🚀 CARGAR LUMINARIAS (PAGINADO)
+// 🚀 CARGAR DATOS
 async function cargarLuminarias() {
 
   if (capaLuminarias) map.removeLayer(capaLuminarias);
@@ -104,7 +109,7 @@ async function cargarLuminarias() {
 
   console.log('Total registros:', todos.length);
 
-  // 🔥 ACTUALIZAR PANEL
+  // 🔥 ACTUALIZA PANEL DESPUÉS DE EXISTIR
   actualizarConteo(todos);
 
   todos.forEach(item => {
@@ -136,7 +141,7 @@ async function cargarLuminarias() {
   overlays["Luminarias"] = capaLuminarias;
 }
 
-// ✏️ EDITAR TIPO
+// ✏️ EDITAR
 async function editarTipo(id, tipoActual) {
 
   const nuevoTipo = prompt(
@@ -159,7 +164,7 @@ async function editarTipo(id, tipoActual) {
   await cargarLuminarias();
 }
 
-// 📍 UBICACIÓN DEL USUARIO
+// 📍 UBICACIÓN
 function ubicarUsuario() {
 
   map.locate({ setView: true, maxZoom: 16 });
@@ -173,26 +178,17 @@ function ubicarUsuario() {
       fillOpacity: 0.9
     }).addTo(map).bindPopup("Estás aquí");
 
-    L.circle([e.latitude, e.longitude], {
-      radius: e.accuracy,
-      color: '#3b82f6',
-      fillOpacity: 0.1
-    }).addTo(map);
-
-  });
-
-  map.on('locationerror', () => {
-    console.log('No se pudo obtener ubicación');
   });
 }
 
-// 🚀 INICIO
+// 🚀 INIT
 async function iniciarMapa() {
+
+  panelConteo.addTo(map); // 🔥 PRIMERO EL PANEL
+
   await cargarLuminarias();
 
   controlCapas = L.control.layers(baseMaps, overlays).addTo(map);
-
-  panelConteo.addTo(map); // 🔥 PANEL
 
   ubicarUsuario();
 }

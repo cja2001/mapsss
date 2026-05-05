@@ -24,15 +24,9 @@
 }
 
 .panel-conteo {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 10px 12px;
+  position: relative;
+  z-index: 1000;
+  background: rgba(255,255,255,0.95);
+  padding: 10px;
   border-radius: 10px;
-  font-size: 13px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  margin-top: 50px; /* 🔥 evita tapar control de capas */
-}
-
-.panel-conteo strong {
-  display: block;
-  margin-bottom: 5px;
 }
