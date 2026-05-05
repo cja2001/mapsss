@@ -1,0 +1,24 @@
+#map {
+  height: 100vh;
+}
+
+/* Leyenda */
+.legend {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.legend div {
+  margin-bottom: 5px;
+}
+
+.legend span {
+  display:inline-block;
+  width:12px;
+  height:12px;
+  margin-right:6px;
+  border-radius:50%;
+}
