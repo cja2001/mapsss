@@ -2,20 +2,19 @@ const supabaseUrl = 'https://nwnlqaohxzxflmxwrtyy.supabase.co';
 const supabaseAnonKey = 'sb_publishable_XjDNrEjB-cbw1_zOlmOCpQ_WCmFjSXr';
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-const map = L.map('map').setView([13.692, -89.191], 10);
+// 🔥 IMPORTANTE: canvas para rendimiento
+const map = L.map('map', {
+  preferCanvas: true
+}).setView([13.692, -89.191], 10);
 
 // CAPAS BASE
 const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '&copy; OpenStreetMap'
+  maxZoom: 19
 });
 
 const satelital = L.tileLayer(
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  {
-    maxZoom: 19,
-    attribution: 'Tiles © Esri'
-  }
+  { maxZoom: 19 }
 );
 
 satelital.addTo(map);
@@ -27,102 +26,89 @@ const baseMaps = {
 
 const overlays = {};
 
-let capaMunicipios = null;
 let capaLuminarias = null;
 let controlCapas = null;
 
-// COLOR POR TIPO
+// 🎨 COLOR POR TIPO
 function obtenerColorPorTipo(tipo) {
-  const valor = (tipo || '').toString().toLowerCase().trim();
+  const t = (tipo || '').toLowerCase().trim();
 
-  switch (valor) {
-    case 'led': return '#22c55e';
-    case 'mercurio': return '#3b82f6';
-    case 'fluorescente':
-    case 'fluoresente': return '#a855f7';
-    default: return '#6b7280';
-  }
+  if (t === 'led') return '#22c55e';
+  if (t === 'mercurio') return '#3b82f6';
+  if (t === 'fluorescente' || t === 'fluoresente') return '#a855f7';
+
+  return '#6b7280';
 }
 
-// GEOJSON
-async function cargarGeoJSON(url) {
-  const response = await fetch(url);
-  const texto = await response.text();
-
-  if (!response.ok) throw new Error(`No se pudo cargar ${url}`);
-
-  return JSON.parse(texto);
-}
-
-// MUNICIPIOS
-function obtenerNombreMunicipio(props) {
-  return props.nombre || props.NOMBRE || props.municipio || props.MUNICIPIO || 'Municipio';
-}
-
-async function cargarMunicipios() {
-  const datos = await cargarGeoJSON('Distritos SSS.geojson');
-
-  capaMunicipios = L.geoJSON(datos, {
-    style: () => ({
-      color: '#ffffff',
-      weight: 3,
-      fillOpacity: 0
-    }),
-    onEachFeature: (feature, layer) => {
-      const nombre = obtenerNombreMunicipio(feature.properties || {});
-      layer.bindTooltip(nombre, { permanent: true, direction: 'center' });
-    }
-  }).addTo(map);
-
-  overlays["Municipios"] = capaMunicipios;
-}
-
-// LUMINARIAS
+// 🚀 CARGAR LUMINARIAS (PAGINADO)
 async function cargarLuminarias() {
 
   if (capaLuminarias) map.removeLayer(capaLuminarias);
 
   capaLuminarias = L.layerGroup();
 
-  const { data, error } = await supabaseClient
-    .from('luminarias')
-    .select('id, potencia, lat, lng, estado, distrito, tipo');
+  let todos = [];
+  let desde = 0;
+  const limite = 1000;
+  let continuar = true;
 
-  if (error) throw error;
+  while (continuar) {
+    const { data, error } = await supabaseClient
+      .from('luminarias')
+      .select('id, lat, lng, tipo')
+      .range(desde, desde + limite - 1);
 
-  data.forEach(item => {
+    if (error) throw error;
 
-    if (!item.lat || !item.lng) return;
+    if (!data || data.length === 0) break;
+
+    todos = todos.concat(data);
+
+    if (data.length < limite) {
+      continuar = false;
+    } else {
+      desde += limite;
+    }
+  }
+
+  console.log('Total registros:', todos.length);
+
+  let dibujados = 0;
+
+  todos.forEach(item => {
+
+    // 🔥 VALIDACIÓN CORRECTA
+    if (item.lat == null || item.lng == null) return;
 
     const color = obtenerColorPorTipo(item.tipo);
 
     const marker = L.circleMarker([item.lat, item.lng], {
-      radius: 3,
+      radius: 2.5, // 🔥 pequeño = mejor rendimiento
       color: color,
       fillColor: color,
-      fillOpacity: 0.6,
-      weight: 1
+      fillOpacity: 0.5,
+      weight: 0.5
     });
 
-    const popup = `
-      <strong>Luminaria ${item.id}</strong><br>
-      Tipo: ${item.tipo || 'N/D'}<br>
-      Estado: ${item.estado || 'N/D'}<br><br>
-
+    marker.bindPopup(`
+      <b>ID:</b> ${item.id}<br>
+      <b>Tipo:</b> ${item.tipo || 'N/D'}<br><br>
       <button onclick="editarTipo(${item.id}, '${(item.tipo || '').replace(/'/g, "\\'")}')">
         Editar tipo
       </button>
-    `;
+    `);
 
-    marker.bindPopup(popup);
     capaLuminarias.addLayer(marker);
+    dibujados++;
   });
+
+  console.log('Puntos dibujados:', dibujados);
 
   capaLuminarias.addTo(map);
   overlays["Luminarias"] = capaLuminarias;
 }
 
-// EDITAR TIPO
+// ✏️ EDITAR TIPO
 async function editarTipo(id, tipoActual) {
 
   const nuevoTipo = prompt(
@@ -145,42 +131,29 @@ async function editarTipo(id, tipoActual) {
   await cargarLuminarias();
 }
 
-// UBICACIÓN DEL USUARIO
+// 📍 UBICACIÓN
 function ubicarUsuario() {
 
-  map.locate({
-    setView: true,
-    maxZoom: 17
-  });
+  map.locate({ setView: true, maxZoom: 16 });
 
-  map.on('locationfound', function (e) {
+  map.on('locationfound', e => {
 
     L.circleMarker([e.latitude, e.longitude], {
-      radius: 7,
+      radius: 6,
       color: '#1d4ed8',
       fillColor: '#60a5fa',
-      fillOpacity: 0.8
-    })
-    .addTo(map)
-    .bindPopup("Estás aquí")
-    .openPopup();
-
-    L.circle([e.latitude, e.longitude], {
-      radius: e.accuracy,
-      color: '#3b82f6',
-      fillOpacity: 0.1
-    }).addTo(map);
+      fillOpacity: 0.9
+    }).addTo(map).bindPopup("Estás aquí");
 
   });
 
-  map.on('locationerror', function () {
-    alert('No se pudo obtener tu ubicación');
+  map.on('locationerror', () => {
+    console.log('No se pudo obtener ubicación');
   });
 }
 
-// INICIO
+// 🚀 INIT
 async function iniciarMapa() {
-  await cargarMunicipios();
   await cargarLuminarias();
 
   controlCapas = L.control.layers(baseMaps, overlays).addTo(map);
