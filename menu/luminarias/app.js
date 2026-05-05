@@ -108,6 +108,8 @@ async function cargarLuminarias() {
   overlays["Luminarias"] = capaLuminarias;
 }
 
+
+
 // ✏️ EDITAR TIPO
 async function editarTipo(id, tipoActual) {
 
@@ -130,6 +132,9 @@ async function editarTipo(id, tipoActual) {
 
   await cargarLuminarias();
 }
+
+
+
 
 // 📍 UBICACIÓN
 function ubicarUsuario() {
@@ -162,5 +167,18 @@ async function iniciarMapa() {
 }
 
 window.editarTipo = editarTipo;
+// 📊 PANEL DE CONTEO
+const panelConteo = L.control({ position: 'topright' });
+
+panelConteo.onAdd = function () {
+  const div = L.DomUtil.create('div', 'panel-conteo');
+  div.innerHTML = `
+    <strong>Luminarias</strong><br>
+    <span id="count-led">LED: 0</span><br>
+    <span id="count-mercurio">Mercurio: 0</span><br>
+    <span id="count-fluorescente">Fluorescente: 0</span>
+  `;
+  return div;
+};
 
 iniciarMapa();
