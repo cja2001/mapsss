@@ -1,7 +1,7 @@
 // ─── SUPABASE ─────────────────────────────
 const supabase = window.supabase.createClient(
   'https://nwnlqaohxzxflmxwrtyy.supabase.co',
-  'TU_ANON_KEY'
+  'sb_publishable_XjDNrEjB-cbw1_zOlmOCpQ_WCmFjSXr'
 );
 
 // ─── MAPA ─────────────────────────────
