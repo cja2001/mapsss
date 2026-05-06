@@ -371,6 +371,7 @@ async function cargarGeoJSON() {
     const initialColor = isSatelital ? 'white' : '#1e3a8a';
 
     const geojsonLayer = L.geoJSON(data, {
+      interactive: false,
       style: {
         color: initialColor,
         weight: 2,
