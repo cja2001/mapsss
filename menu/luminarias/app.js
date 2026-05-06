@@ -375,7 +375,7 @@ async function cargarGeoJSON() {
         color: initialColor,
         weight: 2,
         opacity: 0.8,
-        fillOpacity: 0.1
+        fill: false
       },
       onEachFeature: function (feature, layer) {
         if (feature.properties && feature.properties.NOMBRE) {
