@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menú</title>
+  <link rel="stylesheet" href="style_menu.css">
+</head>
+
+<body>
+
+  <div class="contenedor">
+    <h1>Bienvenido</h1>
+
+    <div class="botones">
+
+      <a href="luminarias/censoluminarias.html" class="btn" id="modulo-luminarias">
+        <img src="iconos/luminarias.png" class="icono" alt="Luminarias">
+        <span>Censo luminarias</span>
+      </a>
+
+
+      <a href="plan mol/mol.html" class="btn" id="modulo-plan-mol">
+        <img src="iconos/planm.png" class="icono" alt="Plan MOL">
+        <span>Plan mol</span>
+      </a>
+
+      <a href="reporte_luminarias/rluminarias.html" class="btn" id="modulo-reporte-luminarias">
+        <img src="iconos/bulbo.png" class="icono" alt="Reporte de luminarias">
+        <span>Reporte de luminarias</span>
+      </a>
+
+      <a href="centros_de_votacion/c_votacion.html" class="btn" id="centros-de-votacion">
+        <img src="iconos/votacion.png" class="icono" alt="Centros de votación">
+        <span>Centros de votacion</span>
+      </a>
+      <a href="admin_usuarios/admin_usuarios.html" class="btn" id="modulo-admin-usuarios">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <line x1="19" y1="8" x2="19" y2="14"/>
+          <line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+        <span>Administrar Usuarios</span>
+      </a>
+
+    </div>
+
+    <div class="acciones-menu">
+      <button id="btn-logout" class="btn btn-logout" type="button">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth-guard.js"></script>
+  <script src="menu.js"></script>
+
+</body>
+
+</html>
