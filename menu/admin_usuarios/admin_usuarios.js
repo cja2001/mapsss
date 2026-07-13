@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
   // ─── Helpers ────────────────────────────────────────
-  function showMsg(containerId, text, type) {
+  function showMsg(containerId, text, type) {j
     const el = document.getElementById(containerId);
     el.textContent = text;
     el.className = `msg msg-${type}`;
