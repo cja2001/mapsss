@@ -1,3 +1,4 @@
+# Workflow for deploying Supabase Edge Functions
 name: Deploy Edge Functions
 
 on:
