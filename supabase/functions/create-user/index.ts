@@ -88,11 +88,16 @@ serve(async (req) => {
       throw new Error("Missing required fields: email, password, nombre, apellido, rol_id")
     }
 
-    // 5. Create user in Supabase Auth
+    // 5. Create user in Supabase Auth (including metadata for database triggers)
     const { data: createData, error: createError } = await adminClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
+      user_metadata: {
+        nombre,
+        apellido,
+        rol_id: parseInt(rol_id)
+      }
     })
 
     if (createError) {
@@ -104,22 +109,23 @@ serve(async (req) => {
       throw new Error("Could not retrieve created user ID")
     }
 
-    // 6. Insert profile record in 'usuarios' table
+    // 6. Insert/update profile record in 'usuarios' table using upsert
+    // (This avoids duplicate key conflicts if a database trigger already inserted the profile)
     const { error: insertError } = await adminClient
       .from("usuarios")
-      .insert({
+      .upsert({
         auth_user_id: newUserId,
         email: email,
         nombre: nombre,
         apellido: apellido,
         rol_id: parseInt(rol_id),
         activo: true,
-      })
+      }, { onConflict: "auth_user_id" })
 
     if (insertError) {
       // Rollback: Delete the Auth user to prevent a dangling un-profiled account
       await adminClient.auth.admin.deleteUser(newUserId)
-      throw new Error("Auth account created, but profile insertion failed: " + insertError.message)
+      throw new Error("Auth account created, but profile insertion/update failed: " + insertError.message)
     }
 
     // 7. Return success response

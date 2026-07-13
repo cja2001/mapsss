@@ -7,12 +7,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ─── Estado global ──────────────────────────────────
   let rolesMap = {}; // { id: nombre, ... }
 
-  // ─── Supabase: Endpoint de la Edge Function (seguro) ─────────
+  //Edge Function
   const EDGE_FUNCTION_URL = 'https://nwnlqaohxzxflmxwrtyy.supabase.co/functions/v1/create-user';
 
 
   // ─── Helpers ────────────────────────────────────────
-  function showMsg(containerId, text, type) {j
+  function showMsg(containerId, text, type) {
     const el = document.getElementById(containerId);
     el.textContent = text;
     el.className = `msg msg-${type}`;
@@ -158,13 +158,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('form-crear').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const email    = document.getElementById('inp-email').value.trim();
+    const email = document.getElementById('inp-email').value.trim();
     const password = document.getElementById('inp-password').value;
-    const rolId    = document.getElementById('sel-rol').value;
-    const nombre   = document.getElementById('inp-nombre').value.trim();
+    const rol_id = document.getElementById('sel-rol').value;
+    const nombre = document.getElementById('inp-nombre').value.trim();
     const apellido = document.getElementById('inp-apellido').value.trim();
 
-    if (!email || !password || !rolId || !nombre || !apellido) return;
+    if (!email || !password || !rol_id || !nombre || !apellido) return;
 
     setCrearLoading(true);
 
@@ -208,7 +208,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       await cargarUsuarios();
 
     } catch (err) {
-      showMsg('msg-crear', err.message || 'Error desconocido', 'error');
+      let msg = err.message || 'Error desconocido';
+      if (msg === 'TypeError: Failed to fetch' || msg === 'Failed to fetch') {
+        msg = 'No se pudo conectar con la Edge Function. Esto usualmente significa que no está desplegada en tu proyecto de Supabase. Despliégala con: "supabase functions deploy create-user"';
+      }
+      showMsg('msg-crear', msg, 'error');
     } finally {
       setCrearLoading(false);
     }
