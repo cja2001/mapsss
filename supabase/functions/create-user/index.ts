@@ -12,6 +12,13 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders })
   }
 
+  if (req.method !== "POST" && req.method !== "DELETE") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    })
+  }
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? ""
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -81,6 +88,37 @@ serve(async (req) => {
       })
     }
 
+    if (req.method === "DELETE") {
+      // 4. Parse payload
+      const { auth_user_id } = await req.json()
+
+      if (!auth_user_id) {
+        throw new Error("Missing required field: auth_user_id")
+      }
+
+      // 5. Delete profile record in 'usuarios' table first to avoid FK constraints
+      const { error: profileError } = await adminClient
+        .from("usuarios")
+        .delete()
+        .eq("auth_user_id", auth_user_id)
+
+      if (profileError) {
+        throw new Error("Failed to delete user profile: " + profileError.message)
+      }
+
+      // 6. Delete user from Supabase Auth
+      const { error: deleteError } = await adminClient.auth.admin.deleteUser(auth_user_id)
+      if (deleteError) {
+        throw deleteError
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+
+    // ─── POST (Create User) Logic ────────────────────────
     // 4. Parse payload
     const { email, password, nombre, apellido, rol_id } = await req.json()
 

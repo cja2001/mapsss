@@ -103,6 +103,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                   data-activo="${u.activo}">
             ${u.activo ? 'Desactivar' : 'Activar'}
           </button>
+          <button class="btn-action btn-delete"
+                  data-auth-id="${u.auth_user_id}">
+            Eliminar
+          </button>
         </td>
       `;
 
@@ -130,7 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ─── Event: activar / desactivar ────────────────
-    tbody.querySelectorAll('.btn-action').forEach(btn => {
+    tbody.querySelectorAll('.btn-action:not(.btn-delete)').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const authId = e.target.dataset.authId;
         const activo = e.target.dataset.activo === 'true';
@@ -150,6 +154,47 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         showMsg('msg-tabla', activo ? '✓ Usuario desactivado' : '✓ Usuario activado', 'success');
         await cargarUsuarios();
+      });
+    });
+
+    // ─── Event: eliminar usuario ───────────────────
+    tbody.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const authId = e.target.dataset.authId;
+        if (!confirm('¿Seguro que deseas eliminar este usuario permanentemente? Esta acción no se puede deshacer.')) return;
+
+        btn.disabled = true;
+
+        try {
+          const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+          if (sessionError || !session) {
+            throw new Error('No se pudo validar la sesión del administrador. Por favor, vuelve a iniciar sesión.');
+          }
+
+          const token = session.access_token;
+
+          const response = await fetch(EDGE_FUNCTION_URL, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ auth_user_id: authId })
+          });
+
+          const resData = await response.json();
+
+          if (!response.ok) {
+            throw new Error(resData.error || 'Error al eliminar el usuario.');
+          }
+
+          showMsg('msg-tabla', '✓ Usuario eliminado permanentemente', 'success');
+          await cargarUsuarios();
+
+        } catch (err) {
+          showMsg('msg-tabla', 'Error: ' + err.message, 'error');
+          btn.disabled = false;
+        }
       });
     });
   }
