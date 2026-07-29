@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, "Segoe UI", sans-serif;
+
+  --color-brand-950: #0a0f1f;
+  --color-brand-900: #0c1222;
+  --color-brand-800: #141b2e;
+  --color-brand-700: #1a2744;
+  --color-brand-600: #1d4ed8;
+  --color-brand-500: #2563eb;
+  --color-brand-400: #60a5fa;
+  --color-brand-300: #93c5fd;
+
+  --color-status-success: #22c55e;
+  --color-status-danger: #ef4444;
+  --color-status-warning: #eab308;
+  --color-status-neutral: #6b7280;
+  --color-status-info: #3b82f6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Shared dark municipal background used on every authenticated screen */
+.app-shell-bg {
+  --app-bg-image: none;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--color-brand-900) 82%, transparent) 0%,
+      color-mix(in srgb, var(--color-brand-800) 78%, transparent) 40%,
+      color-mix(in srgb, var(--color-brand-700) 80%, transparent) 100%
+    ),
+    var(--app-bg-image),
+    var(--color-brand-950);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
