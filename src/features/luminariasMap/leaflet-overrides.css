@@ -1,0 +1,24 @@
+.distrito-label {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-weight: 700;
+  font-size: 12px;
+  color: #fff;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+  pointer-events: none;
+}
+
+.leaflet-popup-content {
+  margin: 10px 12px;
+}
+
+/* El botón "← Menú" flota en la esquina superior derecha (fuera de Leaflet);
+   se empuja el control de capas nativo hacia abajo para que no quede tapado. */
+.leaflet-top.leaflet-right {
+  margin-top: 56px;
+}
