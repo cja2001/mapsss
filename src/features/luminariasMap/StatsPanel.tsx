@@ -33,7 +33,7 @@ export function StatsPanel({
   const total = data.length;
 
   return (
-    <div className="absolute left-3 top-3 z-[1000] w-72 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-900 shadow-2xl">
+    <div className="absolute bottom-3 left-3 z-[1000] w-72 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-900 shadow-2xl">
       <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
         <h2 className="text-sm font-bold">{titulo}</h2>
         <button

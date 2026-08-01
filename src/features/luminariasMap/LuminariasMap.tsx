@@ -15,15 +15,30 @@ import type { Luminaria } from "../../lib/types";
 
 const CENTRO_INICIAL: [number, number] = [13.692, -89.191];
 
+// Rango Unicode de marcas diacríticas combinantes (U+0300–U+036F), construido
+// con códigos numéricos para evitar caracteres combinantes literales en el fuente.
+const DIACRITICOS_REGEX = new RegExp(
+  "[" + String.fromCharCode(0x0300) + "-" + String.fromCharCode(0x036f) + "]",
+  "g"
+);
+
+function normalizarTexto(v: string) {
+  return v.normalize("NFD").replace(DIACRITICOS_REGEX, "").toLowerCase().trim();
+}
+
 export function LuminariasMap({ mode }: { mode: MapMode }) {
   const config = getMapConfig(mode);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerGroupRef = useRef<L.LayerGroup | null>(null);
   const medidorRef = useRef<Medidor | null>(null);
+  const coloniasLayerRef = useRef<L.GeoJSON | null>(null);
   const [addActivo, setAddActivo] = useState(false);
   const [medirActivo, setMedirActivo] = useState(false);
   const [medicionTexto, setMedicionTexto] = useState<string | null>(null);
+  const [busquedaColonia, setBusquedaColonia] = useState("");
+  const [errorBusquedaColonia, setErrorBusquedaColonia] = useState<string | null>(null);
+  const tieneColonias = config.capasExtra.some((capa) => capa.id === "colonias");
 
   const { data, loading, error, updateLuminaria, insertLuminaria } = useLuminarias(
     config.selectColumns
@@ -49,7 +64,11 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
     cargarDistritos(map, satelital, isCancelado).catch((err) =>
       console.error("Error al cargar distritos:", err)
     );
-    config.capasExtra.forEach((capa) => agregarCapaExtra(map, controlCapas, capa, isCancelado));
+    config.capasExtra.forEach((capa) =>
+      agregarCapaExtra(map, controlCapas, capa, isCancelado, (layer) => {
+        if (capa.id === "colonias") coloniasLayerRef.current = layer;
+      })
+    );
     agregarControlUbicacion(map);
 
     const layerGroup = L.layerGroup().addTo(map);
@@ -72,6 +91,7 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
       map.remove();
       mapRef.current = null;
       layerGroupRef.current = null;
+      coloniasLayerRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
@@ -181,9 +201,74 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
     setMedirActivo(false);
   }
 
+  function buscarColonia() {
+    const capaColonias = coloniasLayerRef.current;
+    const map = mapRef.current;
+    const query = normalizarTexto(busquedaColonia);
+    if (!capaColonias || !map || !query) return;
+
+    const coincidencias: L.Polygon[] = [];
+    capaColonias.eachLayer((capa) => {
+      const feature = (capa as L.Layer & { feature?: GeoJSON.Feature }).feature;
+      const nombre = feature?.properties?.text_1;
+      if (typeof nombre === "string" && normalizarTexto(nombre).includes(query)) {
+        coincidencias.push(capa as L.Polygon);
+      }
+    });
+    const encontrada = coincidencias[0];
+
+    if (!encontrada) {
+      setErrorBusquedaColonia("No se encontró ninguna colonia con ese nombre.");
+      return;
+    }
+
+    setErrorBusquedaColonia(null);
+    map.fitBounds(encontrada.getBounds(), { maxZoom: 17, padding: [40, 40] });
+
+    const estiloOriginal = { ...encontrada.options };
+    encontrada.setStyle({ color: "#facc15", weight: 4, fillOpacity: 0.35, fillColor: "#facc15" });
+    encontrada.bringToFront();
+    setTimeout(() => encontrada?.setStyle(estiloOriginal), 2500);
+  }
+
   return (
     <div className="relative h-screen w-full">
       <div ref={mapContainerRef} className="h-full w-full" />
+
+      {tieneColonias && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            buscarColonia();
+          }}
+          className="absolute left-1/2 top-3 z-[1000] w-72 max-w-[calc(100vw-1.5rem)] -translate-x-1/2"
+        >
+          <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+            <input
+              type="text"
+              value={busquedaColonia}
+              onChange={(e) => {
+                setBusquedaColonia(e.target.value);
+                if (errorBusquedaColonia) setErrorBusquedaColonia(null);
+              }}
+              placeholder="Buscar colonia..."
+              className="w-full px-3 py-2 text-sm text-slate-700 outline-none"
+            />
+            <button
+              type="submit"
+              className="px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50"
+              aria-label="Buscar colonia"
+            >
+              🔍
+            </button>
+          </div>
+          {errorBusquedaColonia && (
+            <p className="mt-1 rounded-lg bg-white px-3 py-1 text-xs font-medium text-red-600 shadow">
+              {errorBusquedaColonia}
+            </p>
+          )}
+        </form>
+      )}
 
       <Link
         to="/menu"

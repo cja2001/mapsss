@@ -31,7 +31,8 @@ export function agregarCapaExtra(
   map: L.Map,
   controlCapas: L.Control.Layers,
   capa: CapaExtraConfig,
-  isCancelado: () => boolean
+  isCancelado: () => boolean,
+  onLayerReady?: (layer: L.GeoJSON) => void
 ) {
   const style = { color: capa.color, weight: capa.weight, fillOpacity: capa.fillOpacity };
   const onEachFeature = buildOnEachFeature(capa);
@@ -48,12 +49,14 @@ export function agregarCapaExtra(
         const layer = L.geoJSON(data, { style, onEachFeature, interactive });
         if (capa.visiblePorDefecto) layer.addTo(map);
         controlCapas.addOverlay(layer, capa.label);
+        onLayerReady?.(layer);
       })
       .catch((err) => console.error(`Error al cargar la capa "${capa.label}":`, err));
     return;
   }
 
   const layer = L.geoJSON(undefined, { style, onEachFeature, interactive });
+  onLayerReady?.(layer);
 
   let cargado = false;
   function cargar() {
