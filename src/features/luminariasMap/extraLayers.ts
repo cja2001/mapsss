@@ -46,6 +46,7 @@ export function agregarCapaExtra(
       .then((data) => {
         if (isCancelado()) return;
         const layer = L.geoJSON(data, { style, onEachFeature, interactive });
+        if (capa.visiblePorDefecto) layer.addTo(map);
         controlCapas.addOverlay(layer, capa.label);
       })
       .catch((err) => console.error(`Error al cargar la capa "${capa.label}":`, err));
@@ -53,11 +54,10 @@ export function agregarCapaExtra(
   }
 
   const layer = L.geoJSON(undefined, { style, onEachFeature, interactive });
-  controlCapas.addOverlay(layer, capa.label);
 
   let cargado = false;
-  map.on("overlayadd", (e: L.LayersControlEvent) => {
-    if (e.name !== capa.label || cargado || isCancelado()) return;
+  function cargar() {
+    if (cargado || isCancelado()) return;
     cargado = true;
 
     fetch(capa.url)
@@ -73,5 +73,15 @@ export function agregarCapaExtra(
         cargado = false;
         console.error(`Error al cargar la capa "${capa.label}":`, err);
       });
+  }
+
+  if (capa.visiblePorDefecto) {
+    layer.addTo(map);
+    cargar();
+  }
+
+  controlCapas.addOverlay(layer, capa.label);
+  map.on("overlayadd", (e: L.LayersControlEvent) => {
+    if (e.name === capa.label) cargar();
   });
 }
