@@ -118,7 +118,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!cancelado) cargarPerfil(data.session);
     });
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      // Supabase dispara TOKEN_REFRESHED al recuperar el foco de la pestaña
+      // e INITIAL_SESSION al suscribirse (redundante con getSession() de arriba).
+      // Ignorarlos evita recargar el perfil y remontar las vistas protegidas
+      // (p. ej. el mapa) cuando el usuario simplemente cambia de pestaña.
+      if (event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+        setSession(nextSession);
+        return;
+      }
       setStatus("loading");
       cargarPerfil(nextSession);
     });

@@ -24,6 +24,8 @@ export type CapaExtraConfig = {
   popupFields?: { label: string; propKey: string }[];
   /** Si es true, el archivo no se descarga hasta que el usuario active la capa (para archivos pesados). */
   lazy: boolean;
+  /** Si es true, la capa se muestra (y descarga, si es lazy) automáticamente al abrir el mapa. */
+  visiblePorDefecto?: boolean;
   /**
    * Si es false, la capa no captura clicks (solo se ve el borde/etiqueta).
    * Necesario para capas sin popup que se solapan con otras capas clicleables
@@ -66,6 +68,7 @@ const censoConfig: MapaConfig = {
     if (t === "led") return "#22c55e";
     if (t === "mercurio") return "#3b82f6";
     if (t === "fluorescente" || t === "fluoresente") return "#a855f7";
+    if (t === "sodio") return "#f59e0b";
     return "#6b7280";
   },
   statsCategories: [
@@ -77,16 +80,17 @@ const censoConfig: MapaConfig = {
       color: "#a855f7",
       matches: (v) => norm(v) === "fluorescente" || norm(v) === "fluoresente",
     },
+    { key: "sodio", label: "Sodio", color: "#f59e0b", matches: (v) => norm(v) === "sodio" },
     {
       key: "otro",
       label: "Otro / N/D",
       color: "#6b7280",
-      matches: (v) => !["led", "mercurio", "fluorescente", "fluoresente"].includes(norm(v)),
+      matches: (v) => !["led", "mercurio", "fluorescente", "fluoresente", "sodio"].includes(norm(v)),
     },
   ],
   editableField: "tipo",
   editableLabel: "tipo",
-  editableOpciones: ["led", "mercurio", "fluorescente"],
+  editableOpciones: ["led", "mercurio", "fluorescente", "sodio"],
   popupTitulo: (row) => `ID: ${row.id}`,
   popupCampos: (row) => [
     { label: "Tipo", value: row.tipo || "N/D" },
@@ -99,6 +103,7 @@ const censoConfig: MapaConfig = {
       { value: "led", label: "LED" },
       { value: "mercurio", label: "Mercurio" },
       { value: "fluorescente", label: "Fluorescente" },
+      { value: "sodio", label: "Sodio" },
     ],
   },
   capasExtra: [
@@ -112,6 +117,7 @@ const censoConfig: MapaConfig = {
       tooltipField: "text_1",
       lazy: false,
       interactive: false,
+      visiblePorDefecto: true,
     },
     {
       id: "parcelario",
@@ -130,6 +136,7 @@ const censoConfig: MapaConfig = {
         { label: "Frente (m)", propKey: "FRENTE_MT_" },
       ],
       lazy: true,
+      visiblePorDefecto: true,
     },
   ],
 };
