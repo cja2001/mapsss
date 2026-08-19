@@ -12,7 +12,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
-      includeAssets: ['icons/luminarias.png', 'icons/bulbo.png'],
+      includeAssets: ['icons/luminarias.png', 'icons/bulbo.png', 'icons/logo.png'],
       manifest: {
         name: 'MAPSSS Luminarias',
         short_name: 'Luminarias',
@@ -24,8 +24,8 @@ export default defineConfig({
         background_color: '#ffffff',
         theme_color: '#1d4ed8',
         icons: [
-          { src: '/icons/bulbo.png', sizes: '256x256', type: 'image/png', purpose: 'any' },
-          { src: '/icons/bulbo.png', sizes: '256x256', type: 'image/png', purpose: 'maskable' },
+          { src: '/icons/logo.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icons/logo.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
