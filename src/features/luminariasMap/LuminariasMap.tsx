@@ -6,8 +6,10 @@ import "./leaflet-overrides.css";
 import { getMapConfig, type MapMode } from "./colorConfig";
 import { useLuminarias } from "./useLuminarias";
 import { StatsPanel } from "./StatsPanel";
+import { MapTopBar, type MapVista } from "./MapTopBar";
 import { cargarDistritos } from "./districtsLayer";
 import { agregarCapaExtra } from "./extraLayers";
+import { useColoniasBuscador, type ColoniaSugerencia } from "./useColoniasBuscador";
 import { crearCapasBase, obtenerRadioZoom, agregarControlUbicacion } from "./leafletHelpers";
 import { crearMedidor, type Medidor } from "./measureTool";
 import { buildPopupContent, buildAddFormContent } from "./popupContent";
@@ -21,11 +23,38 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
   const mapRef = useRef<L.Map | null>(null);
   const layerGroupRef = useRef<L.LayerGroup | null>(null);
   const medidorRef = useRef<Medidor | null>(null);
+  const resaltadoBusquedaRef = useRef<L.GeoJSON | null>(null);
   const [addActivo, setAddActivo] = useState(false);
   const [medirActivo, setMedirActivo] = useState(false);
   const [medicionTexto, setMedicionTexto] = useState<string | null>(null);
+  const [vista, setVista] = useState<MapVista>("mapa");
+  const [queryBusqueda, setQueryBusqueda] = useState("");
 
-  const { data, loading, error, updateLuminaria, insertLuminaria } = useLuminarias(
+  const { buscarSugerencias } = useColoniasBuscador();
+  const sugerenciasBusqueda = buscarSugerencias(queryBusqueda);
+
+  function seleccionarColonia(colonia: ColoniaSugerencia) {
+    const map = mapRef.current;
+    if (!map) return;
+
+    resaltadoBusquedaRef.current?.remove();
+    const resaltado = L.geoJSON(colonia.feature, {
+      style: { color: "#2563eb", weight: 3, fillColor: "#2563eb", fillOpacity: 0.25 },
+    }).addTo(map);
+    resaltadoBusquedaRef.current = resaltado;
+
+    map.fitBounds(colonia.bounds, { maxZoom: 17, padding: [40, 40] });
+    setQueryBusqueda("");
+
+    window.setTimeout(() => {
+      if (resaltadoBusquedaRef.current === resaltado) {
+        resaltado.remove();
+        resaltadoBusquedaRef.current = null;
+      }
+    }, 4000);
+  }
+
+  const { data, loading, error, pendientes, updateLuminaria, insertLuminaria } = useLuminarias(
     config.selectColumns
   );
 
@@ -50,7 +79,7 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
       console.error("Error al cargar distritos:", err)
     );
     config.capasExtra.forEach((capa) => agregarCapaExtra(map, controlCapas, capa, isCancelado));
-    agregarControlUbicacion(map);
+    const detenerUbicacion = agregarControlUbicacion(map);
 
     const layerGroup = L.layerGroup().addTo(map);
     layerGroupRef.current = layerGroup;
@@ -67,11 +96,13 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
 
     return () => {
       cancelado = true;
+      detenerUbicacion();
       medidorRef.current?.destruir();
       medidorRef.current = null;
       map.remove();
       mapRef.current = null;
       layerGroupRef.current = null;
+      resaltadoBusquedaRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
@@ -181,6 +212,46 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
     setMedirActivo(false);
   }
 
+  if (mode === "censo") {
+    return (
+      <div className="relative h-screen w-full">
+        <div ref={mapContainerRef} className="leaflet-with-topbar h-full w-full" />
+
+        <MapTopBar
+          vista={vista}
+          onVistaChange={setVista}
+          query={queryBusqueda}
+          onQueryChange={setQueryBusqueda}
+          sugerencias={sugerenciasBusqueda}
+          onSeleccionarColonia={seleccionarColonia}
+        />
+
+        {vista === "dashboard" && (
+          <div className="absolute inset-0 z-[999] flex items-center justify-center bg-white/95">
+            <p className="text-sm font-medium text-slate-500">Dashboard próximamente</p>
+          </div>
+        )}
+
+        <StatsPanel
+          data={data}
+          loading={loading}
+          error={error}
+          pendientes={pendientes}
+          titulo={config.titulo}
+          categories={config.statsCategories}
+          campo={config.editableField}
+          onAdd={alternarAgregar}
+          addActivo={addActivo}
+          medirActivo={medirActivo}
+          medicionTexto={medicionTexto}
+          onToggleMedir={alternarMedir}
+          onBorrarMedicion={borrarMedicion}
+          posicion="bottom"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="relative h-screen w-full">
       <div ref={mapContainerRef} className="h-full w-full" />
@@ -196,6 +267,7 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
         data={data}
         loading={loading}
         error={error}
+        pendientes={pendientes}
         titulo={config.titulo}
         categories={config.statsCategories}
         campo={config.editableField}

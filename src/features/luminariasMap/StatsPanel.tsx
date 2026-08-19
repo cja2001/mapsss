@@ -1,11 +1,13 @@
 import { useState } from "react";
 import type { Luminaria } from "../../lib/types";
 import type { StatCategoria } from "./colorConfig";
+import { useOnlineStatus } from "../../lib/useOnlineStatus";
 
 export function StatsPanel({
   data,
   loading,
   error,
+  pendientes = 0,
   titulo,
   categories,
   campo,
@@ -15,10 +17,13 @@ export function StatsPanel({
   medicionTexto,
   onToggleMedir,
   onBorrarMedicion,
+  posicion = "top",
 }: {
   data: Luminaria[];
   loading: boolean;
   error: string | null;
+  /** Nº de cambios hechos sin conexión que aún no se han enviado al servidor. */
+  pendientes?: number;
   titulo: string;
   categories: StatCategoria[];
   campo: "tipo" | "estado";
@@ -28,12 +33,19 @@ export function StatsPanel({
   medicionTexto: string | null;
   onToggleMedir: () => void;
   onBorrarMedicion: () => void;
+  /** Dónde anclar el panel dentro del mapa. */
+  posicion?: "top" | "bottom";
 }) {
   const [abierto, setAbierto] = useState(true);
+  const enLinea = useOnlineStatus();
   const total = data.length;
 
   return (
-    <div className="absolute left-3 top-3 z-[1000] w-72 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-900 shadow-2xl">
+    <div
+      className={`absolute left-3 z-[1000] w-72 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-900 shadow-2xl ${
+        posicion === "bottom" ? "bottom-3" : "top-3"
+      }`}
+    >
       <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
         <h2 className="text-sm font-bold">{titulo}</h2>
         <button
@@ -84,6 +96,19 @@ export function StatsPanel({
           )}
 
           {error && <p className="text-xs font-medium text-red-600">Error: {error}</p>}
+
+          {!enLinea && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
+              📴 Sin conexión: los cambios se guardan y se enviarán al recuperar la señal.
+            </p>
+          )}
+
+          {pendientes > 0 && (
+            <p className="rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-brand-600">
+              🔄 {pendientes} {pendientes === 1 ? "cambio pendiente" : "cambios pendientes"} de
+              sincronizar
+            </p>
+          )}
 
           {loading ? (
             <p className="text-xs text-slate-500">Cargando datos…</p>

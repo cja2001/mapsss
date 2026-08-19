@@ -1,5 +1,6 @@
 import L from "leaflet";
 import type { CapaExtraConfig } from "./colorConfig";
+import { asociarPuntoEtiqueta, reaplicarPuntoEtiqueta } from "./polygonLabelPoint";
 
 function buildOnEachFeature(capa: CapaExtraConfig) {
   return (feature: GeoJSON.Feature, layer: L.Layer) => {
@@ -9,8 +10,9 @@ function buildOnEachFeature(capa: CapaExtraConfig) {
       layer.bindTooltip(String(props[capa.tooltipField]), {
         permanent: true,
         direction: "center",
-        className: "distrito-label",
+        className: "colonia-label",
       });
+      asociarPuntoEtiqueta(layer, feature.geometry);
     }
 
     if (capa.popupFields?.length) {
@@ -20,6 +22,11 @@ function buildOnEachFeature(capa: CapaExtraConfig) {
       layer.bindPopup(html);
     }
   };
+}
+
+/** Reaplica el punto de etiqueta centrado a cada polígono de `layer` (ver polygonLabelPoint.ts). */
+function centrarEtiquetas(layer: L.GeoJSON) {
+  layer.eachLayer(reaplicarPuntoEtiqueta);
 }
 
 /**
@@ -36,6 +43,7 @@ export function agregarCapaExtra(
   const style = { color: capa.color, weight: capa.weight, fillOpacity: capa.fillOpacity };
   const onEachFeature = buildOnEachFeature(capa);
   const interactive = capa.interactive ?? true;
+  const tieneEtiquetas = !!capa.tooltipField;
 
   if (!capa.lazy) {
     fetch(capa.url)
@@ -47,6 +55,15 @@ export function agregarCapaExtra(
         if (isCancelado()) return;
         const layer = L.geoJSON(data, { style, onEachFeature, interactive });
         controlCapas.addOverlay(layer, capa.label);
+        if (tieneEtiquetas) {
+          centrarEtiquetas(layer);
+          // Leaflet reposiciona los tooltips al centroide de la bbox cada vez que
+          // la capa vuelve a agregarse al mapa (p. ej. al activar la casilla),
+          // así que hay que recentrar cada vez que eso ocurre.
+          map.on("overlayadd", (e: L.LayersControlEvent) => {
+            if (e.name === capa.label) centrarEtiquetas(layer);
+          });
+        }
       })
       .catch((err) => console.error(`Error al cargar la capa "${capa.label}":`, err));
     return;
@@ -54,6 +71,11 @@ export function agregarCapaExtra(
 
   const layer = L.geoJSON(undefined, { style, onEachFeature, interactive });
   controlCapas.addOverlay(layer, capa.label);
+  if (tieneEtiquetas) {
+    map.on("overlayadd", (e: L.LayersControlEvent) => {
+      if (e.name === capa.label) centrarEtiquetas(layer);
+    });
+  }
 
   let cargado = false;
   map.on("overlayadd", (e: L.LayersControlEvent) => {
@@ -68,6 +90,7 @@ export function agregarCapaExtra(
       .then((data: GeoJSON.GeoJsonObject) => {
         if (isCancelado()) return;
         layer.addData(data);
+        if (tieneEtiquetas) centrarEtiquetas(layer);
       })
       .catch((err) => {
         cargado = false;

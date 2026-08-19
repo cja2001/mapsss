@@ -13,6 +13,21 @@
   pointer-events: none;
 }
 
+.colonia-label {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-weight: 700;
+  font-size: 10px;
+  color: #fff;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+  pointer-events: none;
+}
+
 .leaflet-popup-content {
   margin: 10px 12px;
 }
@@ -21,4 +36,10 @@
    se empuja el control de capas nativo hacia abajo para que no quede tapado. */
 .leaflet-top.leaflet-right {
   margin-top: 56px;
+}
+
+/* En censo, MapTopBar ocupa dos filas arriba; el control de capas nativo
+   se empuja hasta la segunda fila, justo debajo del botón "Menú". */
+.leaflet-with-topbar .leaflet-top.leaflet-right {
+  margin-top: 64px;
 }

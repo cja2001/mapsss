@@ -1,4 +1,5 @@
 import L from "leaflet";
+import { asociarPuntoEtiqueta, reaplicarPuntoEtiqueta } from "./polygonLabelPoint";
 
 const GEOJSON_URL = "/distritos-sss.geojson";
 const COLOR_SATELITAL = "white";
@@ -28,9 +29,14 @@ export async function cargarDistritos(map: L.Map, satelital: L.TileLayer, isCanc
           direction: "center",
           className: "distrito-label",
         });
+        asociarPuntoEtiqueta(featureLayer, feature.geometry);
       }
     },
   }).addTo(map);
+
+  // Leaflet reposiciona los tooltips al centroide de la bbox al agregar la capa
+  // al mapa (arriba), pisando el punto centrado calculado en onEachFeature.
+  layer.eachLayer(reaplicarPuntoEtiqueta);
 
   map.on("baselayerchange", (e: L.LayersControlEvent) => {
     layer.setStyle({ color: e.name === "Satelital" ? COLOR_SATELITAL : COLOR_NORMAL });

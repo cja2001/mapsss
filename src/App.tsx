@@ -7,11 +7,13 @@ import { MenuPage } from "./features/menu/MenuPage";
 import { CensoPage } from "./features/luminariasMap/CensoPage";
 import { ReportePage } from "./features/luminariasMap/ReportePage";
 import { AdminUsuariosPage } from "./features/adminUsuarios/AdminUsuariosPage";
+import { InstallAppBanner } from "./components/InstallAppBanner";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <InstallAppBanner />
         <Routes>
           <Route path="/" element={<LoginPage />} />
 

@@ -29,8 +29,16 @@ export function obtenerRadioZoom(zoom: number) {
   return 1.2;
 }
 
+/**
+ * Agrega el botón "Centrar en mi ubicación" y un punto que se mantiene
+ * siguiendo la posición real del usuario (usa watchPosition, no una sola
+ * lectura) para que se mueva solo, sin recargar ni volver a pulsar el botón.
+ * Devuelve una función para detener el seguimiento al desmontar el mapa.
+ */
 export function agregarControlUbicacion(map: L.Map) {
   const control = new L.Control({ position: "topleft" });
+  let ultimaUbicacion: L.LatLng | null = null;
+  let centrarEnProximaUbicacion = true;
 
   control.onAdd = () => {
     const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
@@ -47,7 +55,11 @@ export function agregarControlUbicacion(map: L.Map) {
     L.DomEvent.on(btn, "click", (e) => {
       L.DomEvent.stopPropagation(e);
       L.DomEvent.preventDefault(e);
-      map.locate({ setView: true, maxZoom: 16 });
+      if (ultimaUbicacion) {
+        map.setView(ultimaUbicacion, Math.max(map.getZoom(), 16));
+      } else {
+        centrarEnProximaUbicacion = true;
+      }
     });
 
     return div;
@@ -58,16 +70,30 @@ export function agregarControlUbicacion(map: L.Map) {
   let userMarker: L.CircleMarker | null = null;
 
   map.on("locationfound", (e: L.LocationEvent) => {
-    if (userMarker) map.removeLayer(userMarker);
-    userMarker = L.circleMarker([e.latlng.lat, e.latlng.lng], {
-      radius: 6,
-      color: "#1d4ed8",
-      fillColor: "#60a5fa",
-      fillOpacity: 0.9,
-    })
-      .addTo(map)
-      .bindPopup(`Estás a aprox. ${Math.round(e.accuracy / 2)} metros de este punto`);
+    ultimaUbicacion = e.latlng;
+    const textoPopup = `Estás a aprox. ${Math.round(e.accuracy / 2)} metros de este punto`;
+
+    if (userMarker) {
+      userMarker.setLatLng(e.latlng);
+      userMarker.setPopupContent(textoPopup);
+    } else {
+      userMarker = L.circleMarker(e.latlng, {
+        radius: 6,
+        color: "#1d4ed8",
+        fillColor: "#60a5fa",
+        fillOpacity: 0.9,
+      })
+        .addTo(map)
+        .bindPopup(textoPopup);
+    }
+
+    if (centrarEnProximaUbicacion) {
+      centrarEnProximaUbicacion = false;
+      map.setView(e.latlng, 16);
+    }
   });
 
-  map.locate({ setView: true, maxZoom: 16 });
+  map.locate({ watch: true, enableHighAccuracy: true, maximumAge: 5000 });
+
+  return () => map.stopLocate();
 }
