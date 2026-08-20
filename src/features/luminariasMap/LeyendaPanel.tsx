@@ -130,6 +130,11 @@ export function LeyendaPanel({
                 </div>
               );
             })}
+
+            <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-1 text-xs font-semibold text-slate-900">
+              <span>Total</span>
+              <span className="tabular-nums">{data.length.toLocaleString("es-SV")}</span>
+            </div>
           </div>
         </div>
       </div>

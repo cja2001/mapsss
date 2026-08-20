@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import type { CapaExtraConfig } from "./colorConfig";
 
-export type CapaContable = Pick<CapaExtraConfig, "id" | "label" | "url" | "leyendaPorPropiedad">;
+export type CapaContable = Pick<
+  CapaExtraConfig,
+  "id" | "label" | "url" | "cargarDatos" | "leyendaPorPropiedad"
+>;
 
 /** Descarga y cuenta, por cada capa que declare `leyendaPorPropiedad`, cuántos features caen en cada ítem de su leyenda. */
 export function useConteosPorCapa(capas: CapaContable[]) {
@@ -13,11 +16,14 @@ export function useConteosPorCapa(capas: CapaContable[]) {
     capas
       .filter((capa) => capa.leyendaPorPropiedad)
       .forEach((capa) => {
-        fetch(capa.url)
-          .then((r) => {
-            if (!r.ok) throw new Error(`No se encontró ${capa.url}`);
-            return r.json();
-          })
+        const cargar = capa.cargarDatos
+          ? capa.cargarDatos()
+          : fetch(capa.url!).then((r) => {
+              if (!r.ok) throw new Error(`No se encontró ${capa.url}`);
+              return r.json();
+            });
+
+        cargar
           .then((data: GeoJSON.FeatureCollection) => {
             if (cancelado) return;
             const conteo: Record<string, number> = {};

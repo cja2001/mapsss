@@ -100,3 +100,34 @@ export function agregarControlUbicacion(map: L.Map) {
 
   return () => map.stopLocate();
 }
+
+/**
+ * Crea un control vacío de Leaflet que sirve de "anfitrión" para un botón/menú
+ * de React (vía createPortal). Se bloquea la propagación de clics/scroll para
+ * que no lleguen al mapa.
+ */
+function crearControlAnfitrion(map: L.Map): HTMLDivElement {
+  const control = new L.Control({ position: "topleft" });
+  let container!: HTMLDivElement;
+
+  control.onAdd = () => {
+    container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+    container.style.position = "relative";
+    L.DomEvent.disableClickPropagation(container);
+    L.DomEvent.disableScrollPropagation(container);
+    return container;
+  };
+
+  control.addTo(map);
+  return container;
+}
+
+/** Control (topleft, debajo del botón de ubicación) que aloja el menú de herramientas. */
+export function agregarControlHerramientas(map: L.Map): HTMLDivElement {
+  return crearControlAnfitrion(map);
+}
+
+/** Control (topleft, debajo del de herramientas) que aloja el botón de leyenda. */
+export function agregarControlLeyenda(map: L.Map): HTMLDivElement {
+  return crearControlAnfitrion(map);
+}

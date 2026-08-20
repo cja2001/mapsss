@@ -1,6 +1,7 @@
 import L from "leaflet";
 import type { CapaExtraConfig } from "./colorConfig";
 import { asociarPuntoEtiqueta, reaplicarPuntoEtiqueta } from "./polygonLabelPoint";
+import { buildCapaPopupContent } from "./capaPopup";
 
 function buildOnEachFeature(capa: CapaExtraConfig) {
   return (feature: GeoJSON.Feature, layer: L.Layer) => {
@@ -15,13 +16,31 @@ function buildOnEachFeature(capa: CapaExtraConfig) {
       asociarPuntoEtiqueta(layer, feature.geometry);
     }
 
-    if (capa.popupFields?.length) {
+    if (capa.camposEditables?.length && capa.guardarEdicion) {
+      const contenido = buildCapaPopupContent(props, capa, async (cambios) => {
+        await capa.guardarEdicion!(props, cambios);
+        feature.properties = { ...feature.properties, ...cambios };
+        if (capa.colorPorPropiedad && "setStyle" in layer) {
+          (layer as L.Path).setStyle({ color: capa.colorPorPropiedad(feature.properties) });
+        }
+      });
+      layer.bindPopup(contenido);
+    } else if (capa.popupFields?.length) {
       const html = capa.popupFields
         .map(({ label, propKey }) => `<b>${label}:</b> ${props[propKey] ?? "N/D"}`)
         .join("<br>");
       layer.bindPopup(html);
     }
   };
+}
+
+/** Descarga los datos de una capa: usa `cargarDatos` si está definido (ej. una tabla de Supabase), si no hace `fetch(url)`. */
+async function cargarDatosCapa(capa: CapaExtraConfig): Promise<GeoJSON.GeoJsonObject> {
+  if (capa.cargarDatos) return capa.cargarDatos();
+
+  const r = await fetch(capa.url!);
+  if (!r.ok) throw new Error(`No se encontró ${capa.url}`);
+  return r.json();
 }
 
 /** Reaplica el punto de etiqueta centrado a cada polígono de `layer` (ver polygonLabelPoint.ts). */
@@ -52,11 +71,7 @@ export function agregarCapaExtra(
   const tieneEtiquetas = !!capa.tooltipField;
 
   if (!capa.lazy) {
-    fetch(capa.url)
-      .then((r) => {
-        if (!r.ok) throw new Error(`No se encontró ${capa.url}`);
-        return r.json();
-      })
+    cargarDatosCapa(capa)
       .then((data) => {
         if (isCancelado()) return;
         const layer = L.geoJSON(data, { style, onEachFeature, interactive });
@@ -89,12 +104,8 @@ export function agregarCapaExtra(
     if (cargado || isCancelado()) return;
     cargado = true;
 
-    fetch(capa.url)
-      .then((r) => {
-        if (!r.ok) throw new Error(`No se encontró ${capa.url}`);
-        return r.json();
-      })
-      .then((data: GeoJSON.GeoJsonObject) => {
+    cargarDatosCapa(capa)
+      .then((data) => {
         if (isCancelado()) return;
         layer.addData(data);
         if (tieneEtiquetas) centrarEtiquetas(layer);

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import L from "leaflet";
 import { Link } from "react-router";
 import "leaflet/dist/leaflet.css";
@@ -8,11 +9,19 @@ import { useLuminarias } from "./useLuminarias";
 import { StatsPanel } from "./StatsPanel";
 import { DashboardPanel } from "./DashboardPanel";
 import { LeyendaPanel } from "./LeyendaPanel";
+import { MapToolsMenu } from "./MapToolsMenu";
+import { MapLegendButton } from "./MapLegendButton";
 import { MapTopBar, type MapVista } from "./MapTopBar";
 import { cargarDistritos } from "./districtsLayer";
 import { agregarCapaExtra } from "./extraLayers";
 import { useColoniasBuscador, type ColoniaSugerencia } from "./useColoniasBuscador";
-import { crearCapasBase, obtenerRadioZoom, agregarControlUbicacion } from "./leafletHelpers";
+import {
+  crearCapasBase,
+  obtenerRadioZoom,
+  agregarControlUbicacion,
+  agregarControlHerramientas,
+  agregarControlLeyenda,
+} from "./leafletHelpers";
 import { crearMedidor, type Medidor } from "./measureTool";
 import { buildPopupContent, buildAddFormContent } from "./popupContent";
 import type { Luminaria } from "../../lib/types";
@@ -32,6 +41,8 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
   const [vista, setVista] = useState<MapVista>("mapa");
   const [queryBusqueda, setQueryBusqueda] = useState("");
   const [leyendaActiva, setLeyendaActiva] = useState(false);
+  const [toolsContainer, setToolsContainer] = useState<HTMLDivElement | null>(null);
+  const [leyendaContainer, setLeyendaContainer] = useState<HTMLDivElement | null>(null);
 
   const { buscarSugerencias } = useColoniasBuscador();
   const sugerenciasBusqueda = buscarSugerencias(queryBusqueda);
@@ -83,6 +94,8 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
     );
     config.capasExtra.forEach((capa) => agregarCapaExtra(map, controlCapas, capa, isCancelado));
     const detenerUbicacion = agregarControlUbicacion(map);
+    setToolsContainer(agregarControlHerramientas(map));
+    setLeyendaContainer(agregarControlLeyenda(map));
 
     const layerGroup = L.layerGroup().addTo(map);
     layerGroupRef.current = layerGroup;
@@ -107,6 +120,8 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
       mapRef.current = null;
       layerGroupRef.current = null;
       resaltadoBusquedaRef.current = null;
+      setToolsContainer(null);
+      setLeyendaContainer(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
@@ -243,28 +258,31 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
 
         {vista === "dashboard" && <DashboardPanel data={data} config={config} />}
 
-        <StatsPanel
-          data={data}
-          loading={loading}
-          error={error}
-          pendientes={pendientes}
-          titulo={config.titulo}
-          categories={config.statsCategories}
-          campo={config.editableField}
-          onAdd={alternarAgregar}
-          addActivo={addActivo}
-          medirActivo={medirActivo}
-          medicionTexto={medicionTexto}
-          onToggleMedir={alternarMedir}
-          onBorrarMedicion={borrarMedicion}
-          leyendaActiva={leyendaActiva}
-          onToggleLeyenda={() => setLeyendaActiva((v) => !v)}
-          posicion="bottom"
-        />
-
         {leyendaActiva && (
           <LeyendaPanel data={data} config={config} onCerrar={() => setLeyendaActiva(false)} />
         )}
+
+        {toolsContainer &&
+          createPortal(
+            <MapToolsMenu
+              onAdd={alternarAgregar}
+              addActivo={addActivo}
+              medirActivo={medirActivo}
+              medicionTexto={medicionTexto}
+              onToggleMedir={alternarMedir}
+              onBorrarMedicion={borrarMedicion}
+            />,
+            toolsContainer
+          )}
+
+        {leyendaContainer &&
+          createPortal(
+            <MapLegendButton
+              activo={leyendaActiva}
+              onToggle={() => setLeyendaActiva((v) => !v)}
+            />,
+            leyendaContainer
+          )}
       </div>
     );
   }
@@ -288,19 +306,30 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
         titulo={config.titulo}
         categories={config.statsCategories}
         campo={config.editableField}
-        onAdd={alternarAgregar}
-        addActivo={addActivo}
-        medirActivo={medirActivo}
-        medicionTexto={medicionTexto}
-        onToggleMedir={alternarMedir}
-        onBorrarMedicion={borrarMedicion}
-        leyendaActiva={leyendaActiva}
-        onToggleLeyenda={() => setLeyendaActiva((v) => !v)}
       />
 
       {leyendaActiva && (
         <LeyendaPanel data={data} config={config} onCerrar={() => setLeyendaActiva(false)} />
       )}
+
+      {toolsContainer &&
+        createPortal(
+          <MapToolsMenu
+            onAdd={alternarAgregar}
+            addActivo={addActivo}
+            medirActivo={medirActivo}
+            medicionTexto={medicionTexto}
+            onToggleMedir={alternarMedir}
+            onBorrarMedicion={borrarMedicion}
+          />,
+          toolsContainer
+        )}
+
+      {leyendaContainer &&
+        createPortal(
+          <MapLegendButton activo={leyendaActiva} onToggle={() => setLeyendaActiva((v) => !v)} />,
+          leyendaContainer
+        )}
     </div>
   );
 }

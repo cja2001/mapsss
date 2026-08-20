@@ -11,14 +11,6 @@ export function StatsPanel({
   titulo,
   categories,
   campo,
-  onAdd,
-  addActivo,
-  medirActivo,
-  medicionTexto,
-  onToggleMedir,
-  onBorrarMedicion,
-  leyendaActiva,
-  onToggleLeyenda,
   posicion = "top",
 }: {
   data: Luminaria[];
@@ -29,14 +21,6 @@ export function StatsPanel({
   titulo: string;
   categories: StatCategoria[];
   campo: "tipo" | "estado";
-  onAdd: () => void;
-  addActivo: boolean;
-  medirActivo: boolean;
-  medicionTexto: string | null;
-  onToggleMedir: () => void;
-  onBorrarMedicion: () => void;
-  leyendaActiva: boolean;
-  onToggleLeyenda: () => void;
   /** Dónde anclar el panel dentro del mapa. */
   posicion?: "top" | "bottom";
 }) {
@@ -64,53 +48,6 @@ export function StatsPanel({
 
       {abierto && (
         <div className="space-y-3 px-4 py-3">
-          <button
-            type="button"
-            onClick={onAdd}
-            className={`w-full rounded-lg px-3 py-2 text-sm font-semibold text-white transition-colors ${
-              addActivo ? "bg-status-danger" : "bg-brand-600 hover:bg-brand-500"
-            }`}
-          >
-            {addActivo ? "Cancelar (Haz clic en el mapa)" : "➕ Añadir Luminaria"}
-          </button>
-
-          <button
-            type="button"
-            onClick={onToggleMedir}
-            className={`w-full rounded-lg px-3 py-2 text-sm font-semibold text-white transition-colors ${
-              medirActivo ? "bg-status-danger" : "bg-amber-500 hover:bg-amber-400"
-            }`}
-          >
-            {medirActivo ? "Detener medición" : "📏 Medir distancia"}
-          </button>
-
-          <button
-            type="button"
-            onClick={onToggleLeyenda}
-            className={`w-full rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-              leyendaActiva
-                ? "bg-brand-50 text-brand-600"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            }`}
-          >
-            📖 {leyendaActiva ? "Ocultar leyenda" : "Ver leyenda"}
-          </button>
-
-          {medicionTexto && (
-            <div className="flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2 text-xs">
-              <span className="text-slate-600">
-                Distancia: <strong className="text-slate-900">{medicionTexto}</strong>
-              </span>
-              <button
-                type="button"
-                onClick={onBorrarMedicion}
-                className="font-medium text-slate-400 hover:text-red-500"
-              >
-                Borrar
-              </button>
-            </div>
-          )}
-
           {error && <p className="text-xs font-medium text-red-600">Error: {error}</p>}
 
           {!enLinea && (

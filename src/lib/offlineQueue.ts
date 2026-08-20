@@ -3,7 +3,8 @@ import type { Luminaria } from "./types";
 
 export type MutacionPendiente =
   | { id: string; tipo: "update"; creada: number; luminariaId: number; patch: Partial<Luminaria> }
-  | { id: string; tipo: "insert"; creada: number; row: Partial<Luminaria> };
+  | { id: string; tipo: "insert"; creada: number; row: Partial<Luminaria> }
+  | { id: string; tipo: "viaUpdate"; creada: number; viaId: number; patch: Record<string, string> };
 
 const CLAVE_STORAGE = "luminarias_cola_offline";
 
@@ -70,6 +71,12 @@ export async function sincronizarCola(): Promise<number> {
             .from("luminarias")
             .update(mutacion.patch)
             .eq("id", mutacion.luminariaId);
+          if (error) throw error;
+        } else if (mutacion.tipo === "viaUpdate") {
+          const { error } = await supabase
+            .from("vias_san_marcos")
+            .update(mutacion.patch)
+            .eq("id", mutacion.viaId);
           if (error) throw error;
         } else {
           const { error } = await supabase.from("luminarias").insert([mutacion.row]);

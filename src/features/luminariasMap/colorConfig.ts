@@ -1,3 +1,5 @@
+import { supabase } from "../../lib/supabaseClient";
+import { encolarMutacion, esErrorDeRed } from "../../lib/offlineQueue";
 import type { Luminaria } from "../../lib/types";
 
 export type MapMode = "censo" | "reporte";
@@ -14,7 +16,10 @@ export type CampoPopup = { label: string; value: string };
 export type CapaExtraConfig = {
   id: string;
   label: string;
-  url: string;
+  /** URL de donde descargar el GeoJSON. Ignorado si se define `cargarDatos`. */
+  url?: string;
+  /** Si se define, reemplaza `fetch(url)` para obtener los datos (ej. una tabla de Supabase en vez de un archivo estático). */
+  cargarDatos?: () => Promise<GeoJSON.FeatureCollection>;
   color: string;
   weight: number;
   fillOpacity: number;
@@ -30,6 +35,13 @@ export type CapaExtraConfig = {
   tooltipField?: string;
   /** Campos a mostrar en el popup al hacer click sobre un feature. */
   popupFields?: { label: string; propKey: string }[];
+  /** Campos que se pueden editar desde el popup (aparecen como <select> en vez de texto). Requiere `guardarEdicion`. */
+  camposEditables?: { propKey: string; label: string; opciones: string[] }[];
+  /** Guarda los cambios hechos desde `camposEditables` (recibe las propiedades originales del feature y los valores nuevos). */
+  guardarEdicion?: (
+    props: GeoJSON.GeoJsonProperties,
+    cambios: Record<string, string>
+  ) => Promise<void>;
   /** Si es true, el archivo no se descarga hasta que el usuario active la capa (para archivos pesados). */
   lazy: boolean;
   /** Si es true, la capa se muestra (y descarga, si es lazy) automáticamente al abrir el mapa. */
@@ -91,7 +103,7 @@ const MATERIALES_CALLE = [
 const OTRO_MATERIAL_CALLE = { label: "Otro material", color: "#94a3b8" };
 
 function categoriaMaterialCalle(props: GeoJSON.GeoJsonProperties) {
-  const material = normalizarMaterial(props?.MATERIAL);
+  const material = normalizarMaterial(props?.material_norm);
   return MATERIALES_CALLE.find((m) => m.test(material)) ?? OTRO_MATERIAL_CALLE;
 }
 
@@ -101,6 +113,35 @@ function colorPorMaterialCalle(props: GeoJSON.GeoJsonProperties) {
 
 function leyendaPorMaterialCalle(props: GeoJSON.GeoJsonProperties) {
   return categoriaMaterialCalle(props).label;
+}
+
+/** La capa de Calles lee y edita directamente la tabla `vias_san_marcos` (con geometría PostGIS) en vez de un archivo estático. */
+async function cargarViasSanMarcos(): Promise<GeoJSON.FeatureCollection> {
+  // { get: true } hace la llamada por GET en vez de POST, para que el
+  // service worker pueda cachearla igual que el resto de lecturas a Supabase.
+  const { data, error } = await supabase.rpc("vias_san_marcos_geojson", {}, { get: true });
+  if (error) throw error;
+  return data as GeoJSON.FeatureCollection;
+}
+
+async function guardarEdicionVia(props: GeoJSON.GeoJsonProperties, cambios: Record<string, string>) {
+  const id = props?.id;
+  if (id == null) throw new Error("No se encontró el id de la calle.");
+
+  const patch = { material_norm: cambios.material_norm, estado_norm: cambios.estado_norm };
+
+  if (!navigator.onLine) {
+    encolarMutacion({ tipo: "viaUpdate", viaId: id, patch });
+    return;
+  }
+
+  try {
+    const { error } = await supabase.from("vias_san_marcos").update(patch).eq("id", id);
+    if (error) throw error;
+  } catch (err) {
+    if (!esErrorDeRed(err)) throw err;
+    encolarMutacion({ tipo: "viaUpdate", viaId: id, patch });
+  }
 }
 
 const censoConfig: MapaConfig = {
@@ -188,23 +229,41 @@ const censoConfig: MapaConfig = {
     {
       id: "calles",
       label: "Calles",
-      url: "/calles-san-marcos.geojson",
+      cargarDatos: cargarViasSanMarcos,
       color: "#94a3b8",
       colorPorPropiedad: colorPorMaterialCalle,
       leyenda: [...MATERIALES_CALLE, OTRO_MATERIAL_CALLE],
       leyendaPorPropiedad: leyendaPorMaterialCalle,
       simboloLeyenda: "linea",
-      weight: 2,
+      weight: 3,
       fillOpacity: 0,
       popupFields: [
-        { label: "Calle", propKey: "NOMBRE_DE" },
-        { label: "Colonia", propKey: "Text_1" },
-        { label: "Estado", propKey: "ESTADO" },
-        { label: "Material", propKey: "MATERIAL" },
-        { label: "Vías", propKey: "VIAS" },
-        { label: "Clase", propKey: "CLASE" },
-        { label: "Ancho (m)", propKey: "ANCHO_1" },
+        { label: "Calle", propKey: "nombre_de" },
+        { label: "Colonia", propKey: "text_1" },
+        { label: "Material (original)", propKey: "material" },
+        { label: "Estado (original)", propKey: "estado" },
+        { label: "Vías", propKey: "vias" },
+        { label: "Clase", propKey: "clase" },
+        { label: "Ancho (m)", propKey: "ancho_1" },
       ],
+      camposEditables: [
+        {
+          propKey: "material_norm",
+          label: "Material",
+          opciones: [
+            "ASFALTO",
+            "CONCRETO",
+            "TIERRA",
+            "ADOQUIN",
+            "EMPEDRADO",
+            "LADRILLO DE PISO",
+            "PIEDRA",
+            "OTRO",
+          ],
+        },
+        { propKey: "estado_norm", label: "Estado", opciones: ["BUENO", "REGULAR", "MALO"] },
+      ],
+      guardarEdicion: guardarEdicionVia,
       lazy: true,
     },
   ],
