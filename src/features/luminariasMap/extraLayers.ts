@@ -40,7 +40,13 @@ export function agregarCapaExtra(
   capa: CapaExtraConfig,
   isCancelado: () => boolean
 ) {
-  const style = { color: capa.color, weight: capa.weight, fillOpacity: capa.fillOpacity };
+  const style: L.PathOptions | L.StyleFunction = capa.colorPorPropiedad
+    ? (feature) => ({
+        color: capa.colorPorPropiedad!(feature?.properties ?? null),
+        weight: capa.weight,
+        fillOpacity: capa.fillOpacity,
+      })
+    : { color: capa.color, weight: capa.weight, fillOpacity: capa.fillOpacity };
   const onEachFeature = buildOnEachFeature(capa);
   const interactive = capa.interactive ?? true;
   const tieneEtiquetas = !!capa.tooltipField;

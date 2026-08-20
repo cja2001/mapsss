@@ -18,6 +18,14 @@ export type CapaExtraConfig = {
   color: string;
   weight: number;
   fillOpacity: number;
+  /** Si se define, el color de cada feature se calcula a partir de sus propiedades (en vez de usar `color` fijo para todos). */
+  colorPorPropiedad?: (props: GeoJSON.GeoJsonProperties) => string;
+  /** Ítems a mostrar en la leyenda para esta capa. Si no se define, se usa un solo ítem con `label`/`color`. */
+  leyenda?: { label: string; color: string }[];
+  /** Si se define junto con `leyenda`, clasifica cada feature en el `label` de leyenda que le corresponde, para poder mostrar cuántos hay de cada uno. */
+  leyendaPorPropiedad?: (props: GeoJSON.GeoJsonProperties) => string;
+  /** Forma del símbolo en la leyenda: "linea" para capas de líneas/bordes (por defecto "punto"). */
+  simboloLeyenda?: "punto" | "linea";
   /** Nombre de la propiedad a mostrar como etiqueta permanente sobre cada feature (como los distritos). */
   tooltipField?: string;
   /** Campos a mostrar en el popup al hacer click sobre un feature. */
@@ -45,6 +53,8 @@ export type MapaConfig = {
   editableField: "tipo" | "estado";
   editableLabel: string;
   editableOpciones: string[];
+  /** Si es true, el popup muestra una casilla para marcar/desmarcar "Tasada" directamente. */
+  editableTasada?: boolean;
   popupTitulo: (row: Luminaria) => string;
   popupCampos: (row: Luminaria) => CampoPopup[];
   addForm: {
@@ -59,10 +69,44 @@ function norm(v: string | null | undefined) {
   return (v || "").toString().toLowerCase().trim();
 }
 
+/** Limpia el valor de MATERIAL (espacios extra, backticks sueltos, etc. que trae el dato original). */
+function normalizarMaterial(valor: unknown) {
+  return (valor ?? "")
+    .toString()
+    .toUpperCase()
+    .replace(/[^A-Z\s]/g, "")
+    .trim();
+}
+
+/** Categorías de material de calle: única fuente de verdad para color, leyenda y conteo. */
+const MATERIALES_CALLE = [
+  { label: "Asfalto", color: "#000000", test: (m: string) => m.startsWith("ASFALTO") },
+  { label: "Tierra", color: "#78350f", test: (m: string) => m.startsWith("TIERRA") },
+  {
+    label: "Pavimento (concreto)",
+    color: "#2563eb",
+    test: (m: string) => m.startsWith("CONCRETO") || m === "CONARETO",
+  },
+];
+const OTRO_MATERIAL_CALLE = { label: "Otro material", color: "#94a3b8" };
+
+function categoriaMaterialCalle(props: GeoJSON.GeoJsonProperties) {
+  const material = normalizarMaterial(props?.MATERIAL);
+  return MATERIALES_CALLE.find((m) => m.test(material)) ?? OTRO_MATERIAL_CALLE;
+}
+
+function colorPorMaterialCalle(props: GeoJSON.GeoJsonProperties) {
+  return categoriaMaterialCalle(props).color;
+}
+
+function leyendaPorMaterialCalle(props: GeoJSON.GeoJsonProperties) {
+  return categoriaMaterialCalle(props).label;
+}
+
 const censoConfig: MapaConfig = {
   mode: "censo",
   titulo: "Censo de luminarias",
-  selectColumns: "id, lat, lng, tipo, potencia",
+  selectColumns: "id, lat, lng, tipo, potencia, tasada",
   colorFor: (row) => {
     const t = norm(row.tipo);
     if (t === "led") return "#22c55e";
@@ -91,6 +135,7 @@ const censoConfig: MapaConfig = {
   editableField: "tipo",
   editableLabel: "tipo",
   editableOpciones: ["led", "mercurio", "fluorescente", "sodio"],
+  editableTasada: true,
   popupTitulo: (row) => `ID: ${row.id}`,
   popupCampos: (row) => [
     { label: "Tipo", value: row.tipo || "N/D" },
@@ -115,6 +160,7 @@ const censoConfig: MapaConfig = {
       weight: 1.5,
       fillOpacity: 0,
       tooltipField: "text_1",
+      leyendaPorPropiedad: () => "Colonias",
       lazy: false,
       interactive: false,
       visiblePorDefecto: true,
@@ -126,6 +172,7 @@ const censoConfig: MapaConfig = {
       color: "#f97316",
       weight: 0.6,
       fillOpacity: 0.05,
+      leyendaPorPropiedad: () => "Parcelario",
       popupFields: [
         { label: "Sector", propKey: "SECTOR" },
         { label: "Parcela", propKey: "PARCELA" },
@@ -138,13 +185,35 @@ const censoConfig: MapaConfig = {
       lazy: true,
       visiblePorDefecto: true,
     },
+    {
+      id: "calles",
+      label: "Calles",
+      url: "/calles-san-marcos.geojson",
+      color: "#94a3b8",
+      colorPorPropiedad: colorPorMaterialCalle,
+      leyenda: [...MATERIALES_CALLE, OTRO_MATERIAL_CALLE],
+      leyendaPorPropiedad: leyendaPorMaterialCalle,
+      simboloLeyenda: "linea",
+      weight: 2,
+      fillOpacity: 0,
+      popupFields: [
+        { label: "Calle", propKey: "NOMBRE_DE" },
+        { label: "Colonia", propKey: "Text_1" },
+        { label: "Estado", propKey: "ESTADO" },
+        { label: "Material", propKey: "MATERIAL" },
+        { label: "Vías", propKey: "VIAS" },
+        { label: "Clase", propKey: "CLASE" },
+        { label: "Ancho (m)", propKey: "ANCHO_1" },
+      ],
+      lazy: true,
+    },
   ],
 };
 
 const reporteConfig: MapaConfig = {
   mode: "reporte",
   titulo: "Reporte de luminarias",
-  selectColumns: "id, lat, lng, tipo, potencia, estado, distrito",
+  selectColumns: "id, lat, lng, tipo, potencia, estado, distrito, tasada",
   colorFor: (row) => {
     const v = norm(row.estado);
     if (v === "buena") return "#22c55e";
@@ -182,6 +251,7 @@ const reporteConfig: MapaConfig = {
     { label: "Estado", value: row.estado || "N/D" },
     { label: "Distrito", value: row.distrito || "N/D" },
     { label: "Tipo", value: row.tipo || "N/D" },
+    { label: "Tasada", value: row.tasada ? "Sí" : "No" },
     { label: "Lat", value: String(row.lat) },
     { label: "Lng", value: String(row.lng) },
   ],

@@ -17,6 +17,8 @@ export function StatsPanel({
   medicionTexto,
   onToggleMedir,
   onBorrarMedicion,
+  leyendaActiva,
+  onToggleLeyenda,
   posicion = "top",
 }: {
   data: Luminaria[];
@@ -33,6 +35,8 @@ export function StatsPanel({
   medicionTexto: string | null;
   onToggleMedir: () => void;
   onBorrarMedicion: () => void;
+  leyendaActiva: boolean;
+  onToggleLeyenda: () => void;
   /** Dónde anclar el panel dentro del mapa. */
   posicion?: "top" | "bottom";
 }) {
@@ -78,6 +82,18 @@ export function StatsPanel({
             }`}
           >
             {medirActivo ? "Detener medición" : "📏 Medir distancia"}
+          </button>
+
+          <button
+            type="button"
+            onClick={onToggleLeyenda}
+            className={`w-full rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+              leyendaActiva
+                ? "bg-brand-50 text-brand-600"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            📖 {leyendaActiva ? "Ocultar leyenda" : "Ver leyenda"}
           </button>
 
           {medicionTexto && (

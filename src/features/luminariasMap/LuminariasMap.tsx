@@ -6,6 +6,8 @@ import "./leaflet-overrides.css";
 import { getMapConfig, type MapMode } from "./colorConfig";
 import { useLuminarias } from "./useLuminarias";
 import { StatsPanel } from "./StatsPanel";
+import { DashboardPanel } from "./DashboardPanel";
+import { LeyendaPanel } from "./LeyendaPanel";
 import { MapTopBar, type MapVista } from "./MapTopBar";
 import { cargarDistritos } from "./districtsLayer";
 import { agregarCapaExtra } from "./extraLayers";
@@ -29,6 +31,7 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
   const [medicionTexto, setMedicionTexto] = useState<string | null>(null);
   const [vista, setVista] = useState<MapVista>("mapa");
   const [queryBusqueda, setQueryBusqueda] = useState("");
+  const [leyendaActiva, setLeyendaActiva] = useState(false);
 
   const { buscarSugerencias } = useColoniasBuscador();
   const sugerenciasBusqueda = buscarSugerencias(queryBusqueda);
@@ -83,6 +86,7 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
 
     const layerGroup = L.layerGroup().addTo(map);
     layerGroupRef.current = layerGroup;
+    controlCapas.addOverlay(layerGroup, "Luminarias");
 
     medidorRef.current = crearMedidor(map, setMedicionTexto);
 
@@ -129,16 +133,27 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
       });
 
       marker.bindPopup(
-        buildPopupContent(row, config, async (nuevoValor) => {
-          try {
-            await updateLuminaria(row.id, {
-              [config.editableField]: nuevoValor,
-            } as Partial<Luminaria>);
-            map.closePopup();
-          } catch (err) {
-            alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
+        buildPopupContent(
+          row,
+          config,
+          async (nuevoValor) => {
+            try {
+              await updateLuminaria(row.id, {
+                [config.editableField]: nuevoValor,
+              } as Partial<Luminaria>);
+              map.closePopup();
+            } catch (err) {
+              alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
+            }
+          },
+          async (nuevoValor) => {
+            try {
+              await updateLuminaria(row.id, { tasada: nuevoValor });
+            } catch (err) {
+              alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
+            }
           }
-        })
+        )
       );
 
       layerGroup.addLayer(marker);
@@ -226,11 +241,7 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
           onSeleccionarColonia={seleccionarColonia}
         />
 
-        {vista === "dashboard" && (
-          <div className="absolute inset-0 z-[999] flex items-center justify-center bg-white/95">
-            <p className="text-sm font-medium text-slate-500">Dashboard próximamente</p>
-          </div>
-        )}
+        {vista === "dashboard" && <DashboardPanel data={data} config={config} />}
 
         <StatsPanel
           data={data}
@@ -246,8 +257,14 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
           medicionTexto={medicionTexto}
           onToggleMedir={alternarMedir}
           onBorrarMedicion={borrarMedicion}
+          leyendaActiva={leyendaActiva}
+          onToggleLeyenda={() => setLeyendaActiva((v) => !v)}
           posicion="bottom"
         />
+
+        {leyendaActiva && (
+          <LeyendaPanel data={data} config={config} onCerrar={() => setLeyendaActiva(false)} />
+        )}
       </div>
     );
   }
@@ -277,7 +294,13 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
         medicionTexto={medicionTexto}
         onToggleMedir={alternarMedir}
         onBorrarMedicion={borrarMedicion}
+        leyendaActiva={leyendaActiva}
+        onToggleLeyenda={() => setLeyendaActiva((v) => !v)}
       />
+
+      {leyendaActiva && (
+        <LeyendaPanel data={data} config={config} onCerrar={() => setLeyendaActiva(false)} />
+      )}
     </div>
   );
 }

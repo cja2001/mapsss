@@ -1,20 +1,23 @@
 import L from "leaflet";
 
 export function crearCapasBase() {
-  const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  // Tiles de Google (endpoint no oficial, sin API key). No pasa por Google Maps
+  // Platform: úsese como solución rápida, no como integración a largo plazo.
+  const subdomains = ["mt0", "mt1", "mt2", "mt3"];
+
+  const osm = L.tileLayer("https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
+    subdomains,
     maxZoom: 24,
-    maxNativeZoom: 19,
-    attribution: "&copy; OpenStreetMap",
+    maxNativeZoom: 20,
+    attribution: "&copy; Google",
   });
 
-  const satelital = L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    {
-      maxZoom: 24,
-      maxNativeZoom: 19,
-      attribution: "Tiles © Esri",
-    }
-  );
+  const satelital = L.tileLayer("https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", {
+    subdomains,
+    maxZoom: 24,
+    maxNativeZoom: 20,
+    attribution: "&copy; Google",
+  });
 
   return { osm, satelital };
 }

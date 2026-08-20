@@ -24,6 +24,7 @@ export type Luminaria = {
   potencia: string | null;
   estado: string | null;
   distrito: string | null;
+  tasada: boolean;
 };
 
 export const ROLES = {

@@ -4,7 +4,8 @@ import type { MapaConfig } from "./colorConfig";
 export function buildPopupContent(
   row: Luminaria,
   config: MapaConfig,
-  onGuardarEdicion: (nuevoValor: string) => void
+  onGuardarEdicion: (nuevoValor: string) => void,
+  onGuardarTasada?: (nuevoValor: boolean) => void
 ) {
   const wrapper = document.createElement("div");
   wrapper.className = "min-w-[170px] text-sm";
@@ -19,6 +20,20 @@ export function buildPopupContent(
     p.innerHTML = `<b>${label}:</b> ${value}`;
     wrapper.appendChild(p);
   });
+
+  if (config.editableTasada) {
+    const tasadaLabel = document.createElement("label");
+    tasadaLabel.className = "mt-1.5 flex items-center gap-1.5";
+
+    const tasadaCheckbox = document.createElement("input");
+    tasadaCheckbox.type = "checkbox";
+    tasadaCheckbox.checked = row.tasada;
+    tasadaCheckbox.onchange = () => onGuardarTasada?.(tasadaCheckbox.checked);
+
+    tasadaLabel.appendChild(tasadaCheckbox);
+    tasadaLabel.appendChild(document.createTextNode("Tasada"));
+    wrapper.appendChild(tasadaLabel);
+  }
 
   const form = document.createElement("div");
   form.className = "mt-2.5 flex items-center gap-1.5";

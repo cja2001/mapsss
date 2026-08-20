@@ -34,22 +34,12 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'],
         runtimeCaching: [
           {
-            // Tiles del mapa base (OpenStreetMap): se cachean al verlas, así
-            // las zonas ya visitadas se siguen viendo sin señal.
-            urlPattern: ({ url }) => /^[abc]\.tile\.openstreetmap\.org$/.test(url.hostname),
+            // Tiles del mapa base (Google, mapa normal y satelital): se cachean
+            // al verlas, así las zonas ya visitadas se siguen viendo sin señal.
+            urlPattern: ({ url }) => /^mt[0-3]\.google\.com$/.test(url.hostname),
             handler: 'CacheFirst',
             options: {
-              cacheName: 'mapa-tiles-osm',
-              expiration: { maxEntries: 3000, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            // Tiles satelitales (Esri).
-            urlPattern: ({ url }) => url.hostname === 'server.arcgisonline.com',
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'mapa-tiles-satelital',
+              cacheName: 'mapa-tiles-google',
               expiration: { maxEntries: 3000, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
             },
