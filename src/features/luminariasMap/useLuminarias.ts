@@ -119,6 +119,8 @@ function filaOptimista(row: Partial<Luminaria>): Luminaria {
     potencia: null,
     estado: null,
     distrito: null,
+    tasada: false,
+    servicio: null,
     ...row,
   };
 }

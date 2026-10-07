@@ -33,7 +33,10 @@ export function suscribirseColaPendiente(listener: (pendientes: number) => void)
   };
 }
 
-export function encolarMutacion(mutacion: Omit<MutacionPendiente, "id" | "creada">) {
+/** `Omit` aplicado a cada variante de la unión por separado (el `Omit` normal las fusiona y pierde sus campos propios). */
+type SinIdNiFecha<T> = T extends unknown ? Omit<T, "id" | "creada"> : never;
+
+export function encolarMutacion(mutacion: SinIdNiFecha<MutacionPendiente>) {
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const cola = leerCola();
   cola.push({ ...mutacion, id, creada: Date.now() } as MutacionPendiente);

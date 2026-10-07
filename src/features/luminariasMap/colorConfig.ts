@@ -67,6 +67,8 @@ export type MapaConfig = {
   editableOpciones: string[];
   /** Si es true, el popup muestra una casilla para marcar/desmarcar "Tasada" directamente. */
   editableTasada?: boolean;
+  /** Si es true, el popup muestra un selector para marcar el servicio como nuevo o antiguo directamente. */
+  editableServicio?: boolean;
   popupTitulo: (row: Luminaria) => string;
   popupCampos: (row: Luminaria) => CampoPopup[];
   addForm: {
@@ -76,6 +78,12 @@ export type MapaConfig = {
   };
   capasExtra: CapaExtraConfig[];
 };
+
+function etiquetaServicio(servicio: Luminaria["servicio"]) {
+  if (servicio === "nuevo") return "Nuevo";
+  if (servicio === "antiguo") return "Antiguo";
+  return "Sin clasificar";
+}
 
 function norm(v: string | null | undefined) {
   return (v || "").toString().toLowerCase().trim();
@@ -147,7 +155,7 @@ async function guardarEdicionVia(props: GeoJSON.GeoJsonProperties, cambios: Reco
 const censoConfig: MapaConfig = {
   mode: "censo",
   titulo: "Censo de luminarias",
-  selectColumns: "id, lat, lng, tipo, potencia, tasada",
+  selectColumns: "id, lat, lng, tipo, potencia, tasada, servicio",
   colorFor: (row) => {
     const t = norm(row.tipo);
     if (t === "led") return "#22c55e";
@@ -177,6 +185,7 @@ const censoConfig: MapaConfig = {
   editableLabel: "tipo",
   editableOpciones: ["led", "mercurio", "fluorescente", "sodio"],
   editableTasada: true,
+  editableServicio: true,
   popupTitulo: (row) => `ID: ${row.id}`,
   popupCampos: (row) => [
     { label: "Tipo", value: row.tipo || "N/D" },
@@ -272,7 +281,7 @@ const censoConfig: MapaConfig = {
 const reporteConfig: MapaConfig = {
   mode: "reporte",
   titulo: "Reporte de luminarias",
-  selectColumns: "id, lat, lng, tipo, potencia, estado, distrito, tasada",
+  selectColumns: "id, lat, lng, tipo, potencia, estado, distrito, tasada, servicio",
   colorFor: (row) => {
     const v = norm(row.estado);
     if (v === "buena") return "#22c55e";
@@ -311,6 +320,7 @@ const reporteConfig: MapaConfig = {
     { label: "Distrito", value: row.distrito || "N/D" },
     { label: "Tipo", value: row.tipo || "N/D" },
     { label: "Tasada", value: row.tasada ? "Sí" : "No" },
+    { label: "Servicio", value: etiquetaServicio(row.servicio) },
     { label: "Lat", value: String(row.lat) },
     { label: "Lng", value: String(row.lng) },
   ],

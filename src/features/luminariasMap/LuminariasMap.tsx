@@ -24,6 +24,7 @@ import {
 } from "./leafletHelpers";
 import { crearMedidor, type Medidor } from "./measureTool";
 import { buildPopupContent, buildAddFormContent } from "./popupContent";
+import { cargarHistorialTipo } from "./historialTipo";
 import type { Luminaria } from "../../lib/types";
 
 const CENTRO_INICIAL: [number, number] = [13.692, -89.191];
@@ -148,10 +149,8 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
       });
 
       marker.bindPopup(
-        buildPopupContent(
-          row,
-          config,
-          async (nuevoValor) => {
+        buildPopupContent(row, config, {
+          onGuardarEdicion: async (nuevoValor) => {
             try {
               await updateLuminaria(row.id, {
                 [config.editableField]: nuevoValor,
@@ -161,14 +160,22 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
               alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
             }
           },
-          async (nuevoValor) => {
+          onGuardarTasada: async (nuevoValor) => {
             try {
               await updateLuminaria(row.id, { tasada: nuevoValor });
             } catch (err) {
               alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
             }
-          }
-        )
+          },
+          onGuardarServicio: async (nuevoValor) => {
+            try {
+              await updateLuminaria(row.id, { servicio: nuevoValor });
+            } catch (err) {
+              alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
+            }
+          },
+          cargarHistorial: () => cargarHistorialTipo(row.id),
+        })
       );
 
       layerGroup.addLayer(marker);
@@ -188,12 +195,13 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
       setAddActivo(false);
       const { lat, lng } = e.latlng;
 
-      const contenido = buildAddFormContent(config, async ({ campo, potencia }) => {
+      const contenido = buildAddFormContent(config, async ({ campo, potencia, servicio }) => {
         try {
           await insertLuminaria({
             lat,
             lng,
             potencia,
+            servicio,
             [config.addForm.fieldKey]: campo.toLowerCase().trim(),
           } as Partial<Luminaria>);
           map!.closePopup();

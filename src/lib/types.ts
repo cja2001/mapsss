@@ -25,6 +25,24 @@ export type Luminaria = {
   estado: string | null;
   distrito: string | null;
   tasada: boolean;
+  /** Si el servicio es nuevo o antiguo. `null` = sin clasificar. */
+  servicio: Servicio | null;
+};
+
+export type Servicio = "nuevo" | "antiguo";
+
+export const SERVICIOS: { value: Servicio; label: string }[] = [
+  { value: "nuevo", label: "Nuevo" },
+  { value: "antiguo", label: "Antiguo" },
+];
+
+export type CambioTipoLuminaria = {
+  id: number;
+  luminaria_id: number;
+  tipo_anterior: string | null;
+  tipo_nuevo: string | null;
+  cambiado_por_email: string | null;
+  cambiado_en: string;
 };
 
 export const ROLES = {

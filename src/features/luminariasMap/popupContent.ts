@@ -1,12 +1,79 @@
-import type { Luminaria } from "../../lib/types";
+import { SERVICIOS, type CambioTipoLuminaria, type Luminaria, type Servicio } from "../../lib/types";
 import type { MapaConfig } from "./colorConfig";
 
-export function buildPopupContent(
-  row: Luminaria,
-  config: MapaConfig,
-  onGuardarEdicion: (nuevoValor: string) => void,
-  onGuardarTasada?: (nuevoValor: boolean) => void
-) {
+export type PopupHandlers = {
+  onGuardarEdicion: (nuevoValor: string) => void;
+  onGuardarTasada?: (nuevoValor: boolean) => void;
+  onGuardarServicio?: (nuevoValor: Servicio | null) => void;
+  cargarHistorial?: () => Promise<CambioTipoLuminaria[]>;
+};
+
+const CLASE_SELECT = "rounded border border-slate-300 px-1.5 py-1 text-xs";
+
+function formatearFecha(iso: string) {
+  const fecha = new Date(iso);
+  return Number.isNaN(fecha.getTime())
+    ? iso
+    : fecha.toLocaleString("es-SV", { dateStyle: "short", timeStyle: "short" });
+}
+
+/** Enlace "Ver historial de tipo" que, al pulsarlo, descarga y lista los cambios de tipo de la luminaria. */
+function crearSeccionHistorial(cargarHistorial: () => Promise<CambioTipoLuminaria[]>) {
+  const seccion = document.createElement("div");
+  seccion.className = "mt-2.5 border-t border-slate-200 pt-2";
+
+  const boton = document.createElement("button");
+  boton.type = "button";
+  boton.textContent = "Ver historial de tipo";
+  boton.className = "text-xs font-semibold text-brand-600 hover:underline";
+
+  const lista = document.createElement("div");
+  lista.className = "mt-1.5 max-h-32 space-y-1 overflow-y-auto text-xs";
+
+  boton.onclick = async () => {
+    boton.disabled = true;
+    lista.textContent = "Cargando…";
+    try {
+      const cambios = await cargarHistorial();
+      lista.textContent = "";
+      if (cambios.length === 0) {
+        lista.textContent = "Sin cambios de tipo registrados.";
+        return;
+      }
+      cambios.forEach((cambio) => {
+        const item = document.createElement("div");
+
+        const linea = document.createElement("div");
+        linea.textContent = `${cambio.tipo_anterior || "N/D"} → ${cambio.tipo_nuevo || "N/D"}`;
+        linea.className = "font-semibold";
+
+        const detalle = document.createElement("div");
+        detalle.className = "text-slate-500";
+        detalle.textContent = [formatearFecha(cambio.cambiado_en), cambio.cambiado_por_email]
+          .filter(Boolean)
+          .join(" · ");
+
+        item.appendChild(linea);
+        item.appendChild(detalle);
+        lista.appendChild(item);
+      });
+    } catch {
+      lista.textContent = navigator.onLine
+        ? "No se pudo cargar el historial."
+        : "El historial no está disponible sin conexión.";
+    } finally {
+      boton.disabled = false;
+    }
+  };
+
+  seccion.appendChild(boton);
+  seccion.appendChild(lista);
+  return seccion;
+}
+
+export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: PopupHandlers) {
+  const { onGuardarEdicion, onGuardarTasada, onGuardarServicio, cargarHistorial } = handlers;
+
   const wrapper = document.createElement("div");
   wrapper.className = "min-w-[170px] text-sm";
 
@@ -20,6 +87,30 @@ export function buildPopupContent(
     p.innerHTML = `<b>${label}:</b> ${value}`;
     wrapper.appendChild(p);
   });
+
+  if (config.editableServicio) {
+    const servicioLabel = document.createElement("label");
+    servicioLabel.className = "mt-1.5 flex items-center gap-1.5";
+
+    const texto = document.createElement("b");
+    texto.textContent = "Servicio:";
+
+    const servicioSelect = document.createElement("select");
+    servicioSelect.className = `flex-1 ${CLASE_SELECT}`;
+    [{ value: "", label: "Sin clasificar" }, ...SERVICIOS].forEach(({ value, label }) => {
+      const optionEl = document.createElement("option");
+      optionEl.value = value;
+      optionEl.textContent = label;
+      if (value === (row.servicio ?? "")) optionEl.selected = true;
+      servicioSelect.appendChild(optionEl);
+    });
+    servicioSelect.onchange = () =>
+      onGuardarServicio?.((servicioSelect.value || null) as Servicio | null);
+
+    servicioLabel.appendChild(texto);
+    servicioLabel.appendChild(servicioSelect);
+    wrapper.appendChild(servicioLabel);
+  }
 
   if (config.editableTasada) {
     const tasadaLabel = document.createElement("label");
@@ -39,7 +130,7 @@ export function buildPopupContent(
   form.className = "mt-2.5 flex items-center gap-1.5";
 
   const select = document.createElement("select");
-  select.className = "flex-1 rounded border border-slate-300 px-1.5 py-1 text-xs";
+  select.className = `flex-1 ${CLASE_SELECT}`;
   config.editableOpciones.forEach((opt) => {
     const optionEl = document.createElement("option");
     optionEl.value = opt;
@@ -61,12 +152,17 @@ export function buildPopupContent(
   form.appendChild(saveBtn);
   wrapper.appendChild(form);
 
+  // Las luminarias añadidas sin conexión aún no existen en la base (id temporal negativo).
+  if (cargarHistorial && row.id > 0) {
+    wrapper.appendChild(crearSeccionHistorial(cargarHistorial));
+  }
+
   return wrapper;
 }
 
 export function buildAddFormContent(
   config: MapaConfig,
-  onGuardar: (valores: { campo: string; potencia: string }) => void
+  onGuardar: (valores: { campo: string; potencia: string; servicio: Servicio }) => void
 ) {
   const wrapper = document.createElement("div");
   wrapper.className = "min-w-[170px] text-sm";
@@ -82,7 +178,7 @@ export function buildAddFormContent(
   wrapper.appendChild(campoLabel);
 
   const select = document.createElement("select");
-  select.className = "mb-2.5 w-full rounded border border-slate-300 px-1.5 py-1 text-xs";
+  select.className = `mb-2.5 w-full ${CLASE_SELECT}`;
   config.addForm.opciones.forEach(({ value, label }) => {
     const optionEl = document.createElement("option");
     optionEl.value = value;
@@ -90,6 +186,21 @@ export function buildAddFormContent(
     select.appendChild(optionEl);
   });
   wrapper.appendChild(select);
+
+  const servicioLabel = document.createElement("label");
+  servicioLabel.className = "mb-1 block text-xs";
+  servicioLabel.textContent = "Servicio:";
+  wrapper.appendChild(servicioLabel);
+
+  const servicioSelect = document.createElement("select");
+  servicioSelect.className = `mb-2.5 w-full ${CLASE_SELECT}`;
+  [{ value: "", label: "Seleccionar…" }, ...SERVICIOS].forEach(({ value, label }) => {
+    const optionEl = document.createElement("option");
+    optionEl.value = value;
+    optionEl.textContent = label;
+    servicioSelect.appendChild(optionEl);
+  });
+  wrapper.appendChild(servicioSelect);
 
   const potenciaLabel = document.createElement("label");
   potenciaLabel.className = "mb-1 block text-xs";
@@ -104,7 +215,6 @@ export function buildAddFormContent(
 
   const errorMsg = document.createElement("p");
   errorMsg.className = "mb-2 hidden text-xs text-red-600";
-  errorMsg.textContent = "Por favor ingresa la potencia.";
   wrapper.appendChild(errorMsg);
 
   const saveBtn = document.createElement("button");
@@ -113,11 +223,19 @@ export function buildAddFormContent(
   saveBtn.className =
     "w-full rounded bg-brand-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-500";
   saveBtn.onclick = () => {
-    if (!potenciaInput.value.trim()) {
+    const faltantes: string[] = [];
+    if (!servicioSelect.value) faltantes.push("si el servicio es nuevo o antiguo");
+    if (!potenciaInput.value.trim()) faltantes.push("la potencia");
+    if (faltantes.length > 0) {
+      errorMsg.textContent = `Por favor indica ${faltantes.join(" y ")}.`;
       errorMsg.classList.remove("hidden");
       return;
     }
-    onGuardar({ campo: select.value, potencia: potenciaInput.value.trim() });
+    onGuardar({
+      campo: select.value,
+      potencia: potenciaInput.value.trim(),
+      servicio: servicioSelect.value as Servicio,
+    });
   };
   wrapper.appendChild(saveBtn);
 
