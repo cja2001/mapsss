@@ -32,13 +32,7 @@
   margin: 10px 12px;
 }
 
-/* El botón "← Menú" flota en la esquina superior derecha (fuera de Leaflet);
-   se empuja el control de capas nativo hacia abajo para que no quede tapado. */
-.leaflet-top.leaflet-right {
-  margin-top: 56px;
-}
-
-/* En censo, MapTopBar ocupa dos filas arriba; el control de capas nativo
+/* MapTopBar ocupa dos filas arriba; el control de capas nativo
    se empuja hasta la segunda fila, justo debajo del botón "Menú". */
 .leaflet-with-topbar .leaflet-top.leaflet-right {
   margin-top: 64px;

@@ -8,7 +8,7 @@ type FilaBarra = { key: string; label: string; color: string; valor: number };
 const COLOR_TASADA = "#1d4ed8";
 const COLOR_NO_TASADA = "#64748b";
 
-function GraficoBarras({
+export function GraficoBarras({
   titulo,
   filas,
   forma = "punto",

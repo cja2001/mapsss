@@ -333,7 +333,8 @@ const reporteConfig: MapaConfig = {
       { value: "mantenimiento", label: "En Mantenimiento" },
     ],
   },
-  capasExtra: [],
+  // El reporte muestra las mismas capas que el censo (colonias, parcelario y calles).
+  capasExtra: censoConfig.capasExtra,
 };
 
 export function getMapConfig(mode: MapMode): MapaConfig {

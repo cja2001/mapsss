@@ -22,7 +22,7 @@ flowchart LR
 
   subgraph Supabase
     SAUTH["Auth"]
-    DB[("Postgres + PostGIS<br/>usuarios, roles, luminarias,<br/>luminarias_historial_tipo,<br/>vias_san_marcos")]
+    DB[("Postgres + PostGIS<br/>usuarios, roles, luminarias,<br/>luminarias_historial_tipo,<br/>luminarias_historial_estado,<br/>vias_san_marcos")]
     RPC["RPC vias_san_marcos_geojson"]
     EDGE["Edge Function create-user"]
   end
@@ -91,7 +91,7 @@ flowchart TD
       ReportePage --> LuminariasMap
       LuminariasMap --> colorConfig
       LuminariasMap --> useLuminarias
-      LuminariasMap --> paneles["StatsPanel, DashboardPanel,<br/>LeyendaPanel"]
+      LuminariasMap --> paneles["DashboardPanel, ReporteDashboard,<br/>LeyendaPanel"]
       LuminariasMap --> controles["MapTopBar, MapToolsMenu,<br/>MapLegendButton"]
       LuminariasMap --> districtsLayer
       LuminariasMap --> extraLayers
@@ -136,6 +136,7 @@ flowchart TD
   colorConfig --> supabaseClient
   colorConfig --> offlineQueue
   paneles --> useOnlineStatus
+  paneles --> useReparacionesPorMes --> supabaseClient
 ```
 
 `colorConfig.ts` es el nodo central del mapa. Contiene los tipos `MapaConfig` y `CapaExtraConfig`, las configuraciones de censo y reporte, y la definición de cada capa extra.
@@ -149,6 +150,7 @@ flowchart TD
 | `roles` | Postgres | `useLogin`, `useUsuarios` | nadie desde la app |
 | `luminarias` | Postgres | `luminariasMap/useLuminarias.ts`, paginado de 1000 | `useLuminarias`, `lib/offlineQueue.ts` |
 | `luminarias_historial_tipo` | Postgres, la llena un trigger al cambiar `luminarias.tipo` | `luminariasMap/historialTipo.ts`, botón del popup | solo el trigger `luminarias_registrar_cambio_tipo` |
+| `luminarias_historial_estado` | Postgres, la llena un trigger al cambiar `luminarias.estado` | `luminariasMap/useReparacionesPorMes.ts`, dashboard del reporte | solo el trigger `luminarias_registrar_cambio_estado` |
 | `vias_san_marcos` | Postgres con PostGIS, vía RPC `vias_san_marcos_geojson` | `colorConfig.ts`, capa Calles | `colorConfig.ts`, `offlineQueue.ts` |
 | Distritos | `public/distritos-sss.geojson` | `districtsLayer.ts`, `LeyendaPanel.tsx` | solo lectura |
 | Colonias | `public/colonias-san-marcos.geojson` | `colorConfig.ts`, `useColoniasBuscador.ts` | solo lectura |
@@ -182,7 +184,9 @@ Un error real de Supabase descarta la mutación. Un error de red detiene la sinc
 | Columnas pedidas | id, lat, lng, tipo, potencia, tasada, servicio | además estado y distrito |
 | Servicio nuevo o antiguo | editable en el popup y obligatorio al añadir | visible en el popup y obligatorio al añadir |
 
-Ambos modos comparten `LuminariasMap.tsx`. Toda diferencia entre ellos debe expresarse en `colorConfig.ts`, no con condicionales nuevos en el componente.
+| Dashboard | `DashboardPanel.tsx`: tasadas, tipos y calles | `ReporteDashboard.tsx`: por reparar, reparadas por mes y estados |
+
+Ambos modos comparten `LuminariasMap.tsx`, la barra superior, las herramientas y las capas extra. Toda diferencia entre ellos debe expresarse en `colorConfig.ts`, no con condicionales nuevos en el componente.
 
 ## 6. Build y despliegue
 

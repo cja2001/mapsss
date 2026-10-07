@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import L from "leaflet";
-import { Link } from "react-router";
 import "leaflet/dist/leaflet.css";
 import "./leaflet-overrides.css";
 import { getMapConfig, type MapMode } from "./colorConfig";
 import { useLuminarias } from "./useLuminarias";
-import { StatsPanel } from "./StatsPanel";
+import { ReporteDashboard } from "./ReporteDashboard";
 import { DashboardPanel } from "./DashboardPanel";
 import { LeyendaPanel } from "./LeyendaPanel";
 import { MapToolsMenu } from "./MapToolsMenu";
@@ -250,71 +249,33 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
     setMedirActivo(false);
   }
 
-  if (mode === "censo") {
-    return (
-      <div className="relative h-screen w-full">
-        <div ref={mapContainerRef} className="leaflet-with-topbar h-full w-full" />
-
-        <MapTopBar
-          vista={vista}
-          onVistaChange={setVista}
-          query={queryBusqueda}
-          onQueryChange={setQueryBusqueda}
-          sugerencias={sugerenciasBusqueda}
-          onSeleccionarColonia={seleccionarColonia}
-        />
-
-        {vista === "dashboard" && <DashboardPanel data={data} config={config} />}
-
-        {leyendaActiva && (
-          <LeyendaPanel data={data} config={config} onCerrar={() => setLeyendaActiva(false)} />
-        )}
-
-        {toolsContainer &&
-          createPortal(
-            <MapToolsMenu
-              onAdd={alternarAgregar}
-              addActivo={addActivo}
-              medirActivo={medirActivo}
-              medicionTexto={medicionTexto}
-              onToggleMedir={alternarMedir}
-              onBorrarMedicion={borrarMedicion}
-            />,
-            toolsContainer
-          )}
-
-        {leyendaContainer &&
-          createPortal(
-            <MapLegendButton
-              activo={leyendaActiva}
-              onToggle={() => setLeyendaActiva((v) => !v)}
-            />,
-            leyendaContainer
-          )}
-      </div>
-    );
-  }
-
+  // Censo y reporte comparten la misma barra superior, herramientas y capas;
+  // solo cambia el contenido del dashboard.
   return (
     <div className="relative h-screen w-full">
-      <div ref={mapContainerRef} className="h-full w-full" />
+      <div ref={mapContainerRef} className="leaflet-with-topbar h-full w-full" />
 
-      <Link
-        to="/menu"
-        className="absolute right-3 top-3 z-[1000] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-lg hover:bg-slate-50"
-      >
-        ← Menú
-      </Link>
-
-      <StatsPanel
-        data={data}
-        loading={loading}
-        error={error}
-        pendientes={pendientes}
-        titulo={config.titulo}
-        categories={config.statsCategories}
-        campo={config.editableField}
+      <MapTopBar
+        vista={vista}
+        onVistaChange={setVista}
+        query={queryBusqueda}
+        onQueryChange={setQueryBusqueda}
+        sugerencias={sugerenciasBusqueda}
+        onSeleccionarColonia={seleccionarColonia}
       />
+
+      {vista === "dashboard" &&
+        (mode === "reporte" ? (
+          <ReporteDashboard
+            data={data}
+            config={config}
+            loading={loading}
+            error={error}
+            pendientes={pendientes}
+          />
+        ) : (
+          <DashboardPanel data={data} config={config} />
+        ))}
 
       {leyendaActiva && (
         <LeyendaPanel data={data} config={config} onCerrar={() => setLeyendaActiva(false)} />
