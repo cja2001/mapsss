@@ -22,7 +22,7 @@ flowchart LR
 
   subgraph Supabase
     SAUTH["Auth"]
-    DB[("Postgres + PostGIS<br/>usuarios, roles, luminarias,<br/>luminarias_historial_tipo,<br/>luminarias_historial_estado,<br/>vias_san_marcos")]
+    DB[("Postgres + PostGIS<br/>usuarios, roles, luminarias,<br/>luminarias_historial_tipo,<br/>luminarias_historial_potencia,<br/>luminarias_historial_estado,<br/>vias_san_marcos")]
     RPC["RPC vias_san_marcos_geojson"]
     EDGE["Edge Function create-user"]
   end
@@ -96,7 +96,7 @@ flowchart TD
       LuminariasMap --> districtsLayer
       LuminariasMap --> extraLayers
       LuminariasMap --> popupContent
-      LuminariasMap --> historialTipo
+      LuminariasMap --> historialCambios
       LuminariasMap --> etiquetasColonias
       controles --> etiquetasColonias
       paneles --> exportarCensoExcel --> exportarReporteExcel
@@ -135,7 +135,7 @@ flowchart TD
   useLogin --> supabaseClient
   useUsuarios --> supabaseClient
   useCreateUserFn --> supabaseClient
-  historialTipo --> supabaseClient
+  historialCambios --> supabaseClient
   useLuminarias --> supabaseClient
   useLuminarias --> offlineQueue
   colorConfig --> supabaseClient
@@ -154,7 +154,8 @@ flowchart TD
 | `usuarios` | Postgres | `AuthContext`, `useLogin`, `useUsuarios`, Edge Function | `useUsuarios`, Edge Function |
 | `roles` | Postgres | `useLogin`, `useUsuarios` | nadie desde la app |
 | `luminarias` | Postgres | `luminariasMap/useLuminarias.ts`, paginado de 1000 | `useLuminarias`, `lib/offlineQueue.ts` |
-| `luminarias_historial_tipo` | Postgres, la llena un trigger al cambiar `luminarias.tipo` | `luminariasMap/historialTipo.ts`, botón del popup | solo el trigger `luminarias_registrar_cambio_tipo` |
+| `luminarias_historial_tipo` | Postgres, la llena un trigger al cambiar `luminarias.tipo` | `luminariasMap/historialCambios.ts`, botón del popup | solo el trigger `luminarias_registrar_cambio_tipo` |
+| `luminarias_historial_potencia` | Postgres, la llena un trigger al cambiar `luminarias.potencia` | `luminariasMap/historialCambios.ts`, botón del popup | solo el trigger `luminarias_registrar_cambio_potencia` |
 | `luminarias_historial_estado` | Postgres, la llena un trigger al cambiar `luminarias.estado` | `luminariasMap/useReparacionesPorMes.ts`, dashboard del reporte | solo el trigger `luminarias_registrar_cambio_estado` |
 | `vias_san_marcos` | Postgres con PostGIS, vía RPC `vias_san_marcos_geojson` | `colorConfig.ts`, capa Calles | `colorConfig.ts`, `offlineQueue.ts` |
 | Distritos | `public/distritos-sss.geojson` | `districtsLayer.ts`, `LeyendaPanel.tsx` | solo lectura |

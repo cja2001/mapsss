@@ -36,11 +36,13 @@ export const SERVICIOS: { value: Servicio; label: string }[] = [
   { value: "antiguo", label: "Antiguo" },
 ];
 
-export type CambioTipoLuminaria = {
-  id: number;
-  luminaria_id: number;
-  tipo_anterior: string | null;
-  tipo_nuevo: string | null;
+/** Un cambio registrado en el historial de una luminaria (de tipo o de potencia). */
+export type CambioLuminaria = {
+  /** Único entre ambos historiales, p. ej. "tipo-12" o "potencia-3". */
+  id: string;
+  campo: "tipo" | "potencia";
+  anterior: string | null;
+  nuevo: string | null;
   cambiado_por_email: string | null;
   cambiado_en: string;
 };

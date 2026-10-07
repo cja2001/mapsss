@@ -1,4 +1,4 @@
-import { SERVICIOS, type CambioTipoLuminaria, type Luminaria, type Servicio } from "../../lib/types";
+import { SERVICIOS, type CambioLuminaria, type Luminaria, type Servicio } from "../../lib/types";
 import type { MapaConfig } from "./colorConfig";
 
 export type PopupHandlers = {
@@ -7,7 +7,7 @@ export type PopupHandlers = {
   /** Si se define, la potencia se muestra como un campo editable en vez de texto. */
   onGuardarPotencia?: (nuevoValor: string) => void;
   onGuardarServicio?: (nuevoValor: Servicio | null) => void;
-  cargarHistorial?: () => Promise<CambioTipoLuminaria[]>;
+  cargarHistorial?: () => Promise<CambioLuminaria[]>;
 };
 
 const CLASE_SELECT = "rounded border border-slate-300 px-1.5 py-1 text-xs";
@@ -19,14 +19,19 @@ function formatearFecha(iso: string) {
     : fecha.toLocaleString("es-SV", { dateStyle: "short", timeStyle: "short" });
 }
 
-/** Enlace "Ver historial de tipo" que, al pulsarlo, descarga y lista los cambios de tipo de la luminaria. */
-function crearSeccionHistorial(cargarHistorial: () => Promise<CambioTipoLuminaria[]>) {
+const ETIQUETA_CAMPO: Record<CambioLuminaria["campo"], string> = {
+  tipo: "Tipo",
+  potencia: "Potencia",
+};
+
+/** Enlace "Ver historial de cambios" que, al pulsarlo, descarga y lista los cambios de tipo y de potencia de la luminaria. */
+function crearSeccionHistorial(cargarHistorial: () => Promise<CambioLuminaria[]>) {
   const seccion = document.createElement("div");
   seccion.className = "mt-2.5 border-t border-slate-200 pt-2";
 
   const boton = document.createElement("button");
   boton.type = "button";
-  boton.textContent = "Ver historial de tipo";
+  boton.textContent = "Ver historial de cambios";
   boton.className = "text-xs font-semibold text-brand-600 hover:underline";
 
   const lista = document.createElement("div");
@@ -39,14 +44,16 @@ function crearSeccionHistorial(cargarHistorial: () => Promise<CambioTipoLuminari
       const cambios = await cargarHistorial();
       lista.textContent = "";
       if (cambios.length === 0) {
-        lista.textContent = "Sin cambios de tipo registrados.";
+        lista.textContent = "Sin cambios de tipo ni de potencia registrados.";
         return;
       }
       cambios.forEach((cambio) => {
         const item = document.createElement("div");
 
         const linea = document.createElement("div");
-        linea.textContent = `${cambio.tipo_anterior || "N/D"} → ${cambio.tipo_nuevo || "N/D"}`;
+        linea.textContent = `${ETIQUETA_CAMPO[cambio.campo]}: ${cambio.anterior || "N/D"} → ${
+          cambio.nuevo || "N/D"
+        }`;
         linea.className = "font-semibold";
 
         const detalle = document.createElement("div");

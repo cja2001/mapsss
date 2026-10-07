@@ -28,7 +28,7 @@ import {
 } from "./leafletHelpers";
 import { crearMedidor, type Medidor } from "./measureTool";
 import { buildPopupContent, buildAddFormContent } from "./popupContent";
-import { cargarHistorialTipo } from "./historialTipo";
+import { cargarHistorialCambios } from "./historialCambios";
 import type { Luminaria } from "../../lib/types";
 
 const CENTRO_INICIAL: [number, number] = [13.692, -89.191];
@@ -192,7 +192,7 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
               alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
             }
           },
-          cargarHistorial: () => cargarHistorialTipo(row.id),
+          cargarHistorial: () => cargarHistorialCambios(row.id),
         })
       );
 
