@@ -155,7 +155,7 @@ async function guardarEdicionVia(props: GeoJSON.GeoJsonProperties, cambios: Reco
 const censoConfig: MapaConfig = {
   mode: "censo",
   titulo: "Censo de luminarias",
-  selectColumns: "id, lat, lng, tipo, potencia, tasada, servicio",
+  selectColumns: "id, lat, lng, tipo, potencia, distrito, tasada, servicio",
   colorFor: (row) => {
     const t = norm(row.tipo);
     if (t === "led") return "#22c55e";

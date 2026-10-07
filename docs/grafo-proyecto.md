@@ -99,6 +99,8 @@ flowchart TD
       LuminariasMap --> historialTipo
       LuminariasMap --> etiquetasColonias
       controles --> etiquetasColonias
+      paneles --> exportarCensoExcel --> exportarReporteExcel
+      paneles --> distritos
       paneles --> exportarReporteExcel
       LuminariasMap --> measureTool
       LuminariasMap --> useColoniasBuscador
@@ -184,11 +186,12 @@ Un error real de Supabase descarta la mutación. Un error de red detiene la sinc
 |---|---|---|
 | Ruta | `/luminarias/censo` | `/luminarias/reporte` |
 | Campo editable | `tipo`, más casilla `tasada` | `estado` |
-| Columnas pedidas | id, lat, lng, tipo, potencia, tasada, servicio | además estado y distrito |
+| Columnas pedidas | id, lat, lng, tipo, potencia, distrito, tasada, servicio | además estado |
+| Filtro por distrito | `SelectorDistrito.tsx` y `distritos.ts`: todo el dashboard y el Excel se calculan sobre el distrito elegido | igual, y las reparaciones por mes se filtran por las luminarias del distrito |
 | Servicio nuevo o antiguo | editable en el popup y obligatorio al añadir | visible en el popup y obligatorio al añadir |
 
 | Dashboard | `DashboardPanel.tsx`: tasadas, tipos y calles | `ReporteDashboard.tsx`: por reparar, reparadas por mes y estados |
-| Exportar a Excel | no | `exportarReporteExcel.ts`: resumen con gráficos como imagen y detalle de luminarias, con ExcelJS cargado bajo demanda |
+| Exportar a Excel | `exportarCensoExcel.ts`: una tabla y un gráfico por panel del dashboard, más el listado | `exportarReporteExcel.ts`: resumen con gráficos y detalle de luminarias. Contiene las utilidades compartidas y ExcelJS se carga bajo demanda |
 
 Ambos modos comparten `LuminariasMap.tsx`, la barra superior, las herramientas y las capas extra, salvo el parcelario, que solo se muestra en el censo. Toda diferencia entre ellos debe expresarse en `colorConfig.ts`, no con condicionales nuevos en el componente.
 

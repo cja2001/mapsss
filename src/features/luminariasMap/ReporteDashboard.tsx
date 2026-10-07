@@ -1,12 +1,24 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Luminaria } from "../../lib/types";
 import { exportarReporteExcel } from "./exportarReporteExcel";
 import type { MapaConfig } from "./colorConfig";
 import { useOnlineStatus } from "../../lib/useOnlineStatus";
 import { GraficoBarras } from "./DashboardPanel";
-import { useReparacionesPorMes, type MesReparaciones } from "./useReparacionesPorMes";
+import {
+  contarReparacionesPorMes,
+  useReparaciones,
+  type MesReparaciones,
+} from "./useReparacionesPorMes";
+import { SelectorDistrito } from "./SelectorDistrito";
+import {
+  TODOS_LOS_DISTRITOS,
+  contarPorDistrito,
+  filtrarPorDistrito,
+  listarDistritos,
+} from "./distritos";
 
 const COLOR_REPARADAS = "#1d4ed8";
+const COLOR_POR_REPARAR = "#ef4444";
 /** Claves de `statsCategories` del reporte que cuentan como reportadas y aún sin reparar. */
 const CLAVES_POR_REPARAR = ["danadas", "proceso"];
 
@@ -122,18 +134,44 @@ export function ReporteDashboard({
   pendientes: number;
 }) {
   const enLinea = useOnlineStatus();
-  const reparaciones = useReparacionesPorMes();
+  const reparaciones = useReparaciones();
+
+  const [distrito, setDistrito] = useState(TODOS_LOS_DISTRITOS);
+  const distritos = useMemo(() => listarDistritos(data), [data]);
+  /** Las luminarias del distrito elegido (o todas). Todo el dashboard se calcula sobre estas. */
+  const datos = useMemo(() => filtrarPorDistrito(data, distrito), [data, distrito]);
+  const verTodos = distrito === TODOS_LOS_DISTRITOS;
+  const nombreDistritoElegido = distritos.find((d) => d.clave === distrito)?.nombre;
+
+  const meses = useMemo(() => {
+    if (verTodos) return contarReparacionesPorMes(reparaciones.reparaciones);
+    const idsDelDistrito = new Set(datos.map((d) => d.id));
+    return contarReparacionesPorMes(reparaciones.reparaciones, (id) => idsDelDistrito.has(id));
+  }, [reparaciones.reparaciones, datos, verTodos]);
+
+  const categoriasPorReparar = config.statsCategories.filter((cat) =>
+    CLAVES_POR_REPARAR.includes(cat.key)
+  );
+  const estaPorReparar = (d: Luminaria) =>
+    categoriasPorReparar.some((cat) => cat.matches(d[config.editableField]));
+  const filasPorRepararPorDistrito = contarPorDistrito(
+    data,
+    distritos,
+    COLOR_POR_REPARAR,
+    estaPorReparar
+  );
+  const filasPorDistrito = contarPorDistrito(data, distritos, COLOR_REPARADAS);
 
   const filasEstado = config.statsCategories.map((cat) => ({
     key: cat.key,
     label: cat.label,
     color: cat.color,
-    valor: data.filter((d) => cat.matches(d[config.editableField])).length,
+    valor: datos.filter((d) => cat.matches(d[config.editableField])).length,
   }));
 
   const porReparar = filasEstado.filter((f) => CLAVES_POR_REPARAR.includes(f.key));
   const totalPorReparar = porReparar.reduce((acc, f) => acc + f.valor, 0);
-  const reparadasEsteMes = reparaciones.meses[reparaciones.meses.length - 1]?.valor ?? 0;
+  const reparadasEsteMes = meses[meses.length - 1]?.valor ?? 0;
 
   const [exportando, setExportando] = useState(false);
   const [errorExportar, setErrorExportar] = useState<string | null>(null);
@@ -143,16 +181,18 @@ export function ReporteDashboard({
     setExportando(true);
     setErrorExportar(null);
     try {
-      const categoriasPorReparar = config.statsCategories.filter((cat) =>
-        CLAVES_POR_REPARAR.includes(cat.key)
-      );
       await exportarReporteExcel({
-        luminarias: data,
-        porReparar: data.filter((d) =>
-          categoriasPorReparar.some((cat) => cat.matches(d[config.editableField]))
-        ),
+        distrito: nombreDistritoElegido,
+        grupos: verTodos
+          ? [
+              { titulo: "Por reparar por distrito", filas: filasPorRepararPorDistrito },
+              { titulo: "Luminarias por distrito", filas: filasPorDistrito },
+            ]
+          : [],
+        luminarias: datos,
+        porReparar: datos.filter(estaPorReparar),
         filasEstado,
-        meses: reparaciones.meses,
+        meses,
         reparacionesDisponibles: !reparaciones.error,
       });
     } catch (err) {
@@ -168,14 +208,17 @@ export function ReporteDashboard({
       <div className="mx-auto max-w-3xl space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-bold text-slate-900">{config.titulo}</h2>
-          <button
-            type="button"
-            onClick={exportar}
-            disabled={exportarDeshabilitado}
-            className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {exportando ? "Generando…" : "Exportar a Excel"}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <SelectorDistrito distritos={distritos} valor={distrito} onChange={setDistrito} />
+            <button
+              type="button"
+              onClick={exportar}
+              disabled={exportarDeshabilitado}
+              className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {exportando ? "Generando…" : "Exportar a Excel"}
+            </button>
+          </div>
         </div>
 
         {errorExportar && (
@@ -225,12 +268,21 @@ export function ReporteDashboard({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <GraficoReparadasPorMes
-                meses={reparaciones.meses}
+                meses={meses}
                 cargando={reparaciones.cargando}
                 error={reparaciones.error}
               />
               <GraficoBarras titulo="Estado de las luminarias" filas={filasEstado} />
-              <Indicador titulo="Total de luminarias" valor={data.length} />
+              <Indicador titulo="Total de luminarias" valor={datos.length} />
+              {verTodos && (
+                <>
+                  <GraficoBarras
+                    titulo="Por reparar por distrito"
+                    filas={filasPorRepararPorDistrito}
+                  />
+                  <GraficoBarras titulo="Luminarias por distrito" filas={filasPorDistrito} />
+                </>
+              )}
             </div>
           </>
         )}

@@ -1,10 +1,18 @@
 import type { Workbook, Worksheet } from "exceljs";
 import type { Luminaria } from "../../lib/types";
 import type { MesReparaciones } from "./useReparacionesPorMes";
+import { nombreDistrito } from "./distritos";
 
 export type FilaEstado = { key: string; label: string; color: string; valor: number };
 
+/** Una tabla con su gráfico de barras: el título y las categorías que cuenta. */
+export type GrupoDatos = { titulo: string; filas: FilaEstado[] };
+
 export type DatosReporte = {
+  /** Nombre del distrito al que se filtraron los datos; sin definir si son todos. */
+  distrito?: string;
+  /** Tablas y gráficos adicionales al final del resumen (p. ej. el desglose por distrito). */
+  grupos?: GrupoDatos[];
   luminarias: Luminaria[];
   /** Luminarias reportadas que aún no se han reparado (dañadas o en mantenimiento). */
   porReparar: Luminaria[];
@@ -106,7 +114,7 @@ function graficoColumnas(titulo: string, meses: MesReparaciones[]) {
   return canvas.toDataURL("image/png");
 }
 
-function graficoBarrasHorizontales(titulo: string, filas: FilaEstado[]) {
+export function graficoBarrasHorizontales(titulo: string, filas: FilaEstado[]) {
   const ancho = 640;
   const altoFila = 40;
   const arriba = 52;
@@ -149,7 +157,7 @@ function graficoBarrasHorizontales(titulo: string, filas: FilaEstado[]) {
 
 // ---------- Libro de Excel ----------
 
-function estiloEncabezado(hoja: Worksheet, fila: number, columnas: number) {
+export function estiloEncabezado(hoja: Worksheet, fila: number, columnas: number) {
   for (let c = 1; c <= columnas; c++) {
     const celda = hoja.getCell(fila, c);
     celda.font = { bold: true, color: { argb: "FFFFFFFF" } };
@@ -158,7 +166,7 @@ function estiloEncabezado(hoja: Worksheet, fila: number, columnas: number) {
   }
 }
 
-function tituloSeccion(hoja: Worksheet, fila: number, texto: string) {
+export function tituloSeccion(hoja: Worksheet, fila: number, texto: string) {
   const celda = hoja.getCell(fila, 1);
   celda.value = texto;
   celda.font = { bold: true, size: 12 };
@@ -170,19 +178,92 @@ function etiquetaServicio(servicio: Luminaria["servicio"]) {
   return "Sin clasificar";
 }
 
-function agregarHojaLuminarias(libro: Workbook, nombre: string, luminarias: Luminaria[]) {
+/** Alto por defecto de una fila de Excel, en píxeles, para calcular cuántas filas ocupa cada imagen. */
+const ALTO_FILA_PX = 20;
+
+/** Filas de hoja que hay que saltar para colocar la siguiente imagen debajo de una de `altoPx`. */
+export function filasQueOcupa(altoPx: number) {
+  return Math.ceil(altoPx / ALTO_FILA_PX) + 2;
+}
+
+/** Escribe título, fecha y (si aplica) el distrito en las primeras filas de la hoja de resumen. */
+export function encabezadoResumen(hoja: Worksheet, titulo: string, generado: Date, distrito?: string) {
+  hoja.getColumn(1).width = 32;
+  hoja.getColumn(2).width = 14;
+  hoja.getColumn(3).width = 12;
+  hoja.getColumn(4).width = 4;
+
+  hoja.getCell("A1").value = titulo;
+  hoja.getCell("A1").font = { bold: true, size: 16 };
+  hoja.getCell("A2").value = `Generado el ${generado.toLocaleString("es-SV", {
+    dateStyle: "long",
+    timeStyle: "short",
+  })}`;
+  hoja.getCell("A2").font = { color: { argb: "FF64748B" } };
+  hoja.getCell("A3").value = `Distrito: ${distrito ?? "Todos"}`;
+  hoja.getCell("A3").font = { bold: true };
+}
+
+/**
+ * Añade al resumen una tabla (cantidad y porcentaje) por cada grupo a partir de
+ * `fila`, y su gráfico a la derecha (columna F) a partir de `filaImagen`.
+ */
+export function agregarGrupos(
+  libro: Workbook,
+  hoja: Worksheet,
+  grupos: GrupoDatos[],
+  fila: number,
+  filaImagen: number
+) {
+  for (const grupo of grupos) {
+    const total = grupo.filas.reduce((acc, f) => acc + f.valor, 0);
+
+    tituloSeccion(hoja, fila++, grupo.titulo);
+    hoja.getRow(fila).values = ["Categoría", "Cantidad", "Porcentaje"];
+    estiloEncabezado(hoja, fila++, 3);
+    grupo.filas.forEach((f) => {
+      hoja.getRow(fila).values = [f.label, f.valor, total > 0 ? f.valor / total : 0];
+      hoja.getCell(fila, 3).numFmt = "0.0%";
+      fila++;
+    });
+    hoja.getRow(fila).values = ["Total", total, total > 0 ? 1 : 0];
+    hoja.getRow(fila).font = { bold: true };
+    hoja.getCell(fila, 3).numFmt = "0.0%";
+    fila += 2;
+
+    const grafico = graficoBarrasHorizontales(grupo.titulo, grupo.filas);
+    const idImagen = libro.addImage({ base64: grafico.imagen, extension: "png" });
+    hoja.addImage(idImagen, {
+      tl: { col: 5, row: filaImagen },
+      ext: { width: 640, height: grafico.alto },
+    });
+    filaImagen += filasQueOcupa(grafico.alto);
+  }
+}
+
+export type ColumnaLuminaria = { header: string; key: string; width: number };
+
+/** Columnas del listado de luminarias. Cada exportación elige las que tienen datos en su modo. */
+export const COLUMNAS_LUMINARIA: ColumnaLuminaria[] = [
+  { header: "ID", key: "id", width: 10 },
+  { header: "Estado", key: "estado", width: 16 },
+  { header: "Tipo", key: "tipo", width: 16 },
+  { header: "Potencia", key: "potencia", width: 12 },
+  { header: "Distrito", key: "distrito", width: 22 },
+  { header: "Servicio", key: "servicio", width: 15 },
+  { header: "Tasada", key: "tasada", width: 10 },
+  { header: "Latitud", key: "lat", width: 14 },
+  { header: "Longitud", key: "lng", width: 14 },
+];
+
+export function agregarHojaLuminarias(
+  libro: Workbook,
+  nombre: string,
+  luminarias: Luminaria[],
+  columnas: ColumnaLuminaria[] = COLUMNAS_LUMINARIA
+) {
   const hoja = libro.addWorksheet(nombre, { views: [{ state: "frozen", ySplit: 1 }] });
-  hoja.columns = [
-    { header: "ID", key: "id", width: 10 },
-    { header: "Estado", key: "estado", width: 16 },
-    { header: "Tipo", key: "tipo", width: 16 },
-    { header: "Potencia", key: "potencia", width: 12 },
-    { header: "Distrito", key: "distrito", width: 22 },
-    { header: "Servicio", key: "servicio", width: 15 },
-    { header: "Tasada", key: "tasada", width: 10 },
-    { header: "Latitud", key: "lat", width: 14 },
-    { header: "Longitud", key: "lng", width: 14 },
-  ];
+  hoja.columns = columnas;
   estiloEncabezado(hoja, 1, hoja.columns.length);
 
   hoja.addRows(
@@ -191,7 +272,7 @@ function agregarHojaLuminarias(libro: Workbook, nombre: string, luminarias: Lumi
       estado: l.estado ?? "N/D",
       tipo: l.tipo ?? "N/D",
       potencia: l.potencia ?? "N/D",
-      distrito: l.distrito ?? "N/D",
+      distrito: nombreDistrito(l.distrito),
       servicio: etiquetaServicio(l.servicio),
       tasada: l.tasada ? "Sí" : "No",
       lat: l.lat,
@@ -212,25 +293,15 @@ export async function construirLibroReporte(datos: DatosReporte, generado = new 
   libro.created = generado;
 
   const { luminarias, porReparar, filasEstado, meses, reparacionesDisponibles } = datos;
+  const { distrito, grupos = [] } = datos;
   const total = luminarias.length;
   const mesActual = meses[meses.length - 1];
 
   // ----- Hoja "Resumen" -----
   const resumen = libro.addWorksheet("Resumen");
-  resumen.getColumn(1).width = 32;
-  resumen.getColumn(2).width = 14;
-  resumen.getColumn(3).width = 12;
-  resumen.getColumn(4).width = 4;
+  encabezadoResumen(resumen, "Reporte de luminarias", generado, distrito);
 
-  resumen.getCell("A1").value = "Reporte de luminarias";
-  resumen.getCell("A1").font = { bold: true, size: 16 };
-  resumen.getCell("A2").value = `Generado el ${generado.toLocaleString("es-SV", {
-    dateStyle: "long",
-    timeStyle: "short",
-  })}`;
-  resumen.getCell("A2").font = { color: { argb: "FF64748B" } };
-
-  let fila = 4;
+  let fila = 5;
   tituloSeccion(resumen, fila++, "Indicadores");
   resumen.getRow(fila).values = ["Indicador", "Cantidad"];
   estiloEncabezado(resumen, fila++, 2);
@@ -275,10 +346,11 @@ export async function construirLibroReporte(datos: DatosReporte, generado = new 
   } else {
     resumen.getCell(fila, 1).value = "No se pudo cargar el historial de reparaciones.";
   }
+  fila += 2;
 
   // Gráficos, a la derecha de las tablas (desde la columna F).
   const estado = graficoBarrasHorizontales("Estado de las luminarias", filasEstado);
-  let filaImagen = 3;
+  let filaImagen = 4;
   if (reparacionesDisponibles) {
     const idColumnas = libro.addImage({
       base64: graficoColumnas("Luminarias reparadas por mes (últimos 12 meses)", meses),
@@ -292,6 +364,9 @@ export async function construirLibroReporte(datos: DatosReporte, generado = new 
     tl: { col: 5, row: filaImagen },
     ext: { width: 640, height: estado.alto },
   });
+  filaImagen += filasQueOcupa(estado.alto);
+
+  agregarGrupos(libro, resumen, grupos, fila, filaImagen);
 
   // ----- Hojas de detalle -----
   agregarHojaLuminarias(libro, "Por reparar", porReparar);
@@ -305,17 +380,22 @@ export async function exportarReporteExcel(datos: DatosReporte) {
   const ahora = new Date();
   const buffer = await construirLibroReporte(datos, ahora);
 
+  descargarLibro(buffer, "reporte-luminarias", ahora);
+}
+
+/** Descarga en el navegador un libro ya generado, con la fecha en el nombre del archivo. */
+export function descargarLibro(buffer: ArrayBuffer, prefijo: string, fecha: Date) {
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
   const url = URL.createObjectURL(blob);
-  const fecha = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}-${String(
-    ahora.getDate()
+  const dia = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-${String(
+    fecha.getDate()
   ).padStart(2, "0")}`;
 
   const enlace = document.createElement("a");
   enlace.href = url;
-  enlace.download = `reporte-luminarias-${fecha}.xlsx`;
+  enlace.download = `${prefijo}-${dia}.xlsx`;
   document.body.appendChild(enlace);
   enlace.click();
   enlace.remove();

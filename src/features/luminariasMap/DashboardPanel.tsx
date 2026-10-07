@@ -1,12 +1,23 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Luminaria } from "../../lib/types";
 import type { MapaConfig } from "./colorConfig";
 import { useConteosPorCapa } from "./useConteosPorCapa";
+import { exportarCensoExcel } from "./exportarCensoExcel";
+import { SelectorDistrito } from "./SelectorDistrito";
+import {
+  TODOS_LOS_DISTRITOS,
+  contarPorDistrito,
+  filtrarPorDistrito,
+  listarDistritos,
+} from "./distritos";
 
 type FilaBarra = { key: string; label: string; color: string; valor: number };
 
 const COLOR_TASADA = "#1d4ed8";
 const COLOR_NO_TASADA = "#64748b";
+const COLOR_DISTRITO = "#1d4ed8";
+/** Las capas con conteo (Calles) solo tienen datos de este distrito; con otro distrito elegido no se muestran. */
+const DISTRITO_DE_LAS_CAPAS = "san marcos";
 
 export function GraficoBarras({
   titulo,
@@ -73,18 +84,25 @@ export function DashboardPanel({ data, config }: { data: Luminaria[]; config: Ma
   );
   const conteosCapas = useConteosPorCapa(capasConLeyenda);
 
+  const [distrito, setDistrito] = useState(TODOS_LOS_DISTRITOS);
+  const distritos = useMemo(() => listarDistritos(data), [data]);
+  /** Las luminarias del distrito elegido (o todas). Todo el dashboard se calcula sobre estas. */
+  const datos = useMemo(() => filtrarPorDistrito(data, distrito), [data, distrito]);
+  const verTodos = distrito === TODOS_LOS_DISTRITOS;
+  const nombreDistritoElegido = distritos.find((d) => d.clave === distrito)?.nombre;
+
   const filasTasada: FilaBarra[] = [
     {
       key: "tasada",
       label: "Tasada",
       color: COLOR_TASADA,
-      valor: data.filter((d) => d.tasada).length,
+      valor: datos.filter((d) => d.tasada).length,
     },
     {
       key: "no-tasada",
       label: "No tasada",
       color: COLOR_NO_TASADA,
-      valor: data.filter((d) => !d.tasada).length,
+      valor: datos.filter((d) => !d.tasada).length,
     },
   ];
 
@@ -92,27 +110,89 @@ export function DashboardPanel({ data, config }: { data: Luminaria[]; config: Ma
     key: cat.key,
     label: cat.label,
     color: cat.color,
-    valor: data.filter((d) => cat.matches(d[config.editableField])).length,
+    valor: datos.filter((d) => cat.matches(d[config.editableField])).length,
   }));
+
+  const filasPorDistrito: FilaBarra[] = contarPorDistrito(data, distritos, COLOR_DISTRITO);
+  const mostrarCapas = verTodos || distrito === DISTRITO_DE_LAS_CAPAS;
+
+  const graficosCapas = (mostrarCapas ? capasConLeyenda : []).map((capa) => ({
+    id: capa.id,
+    titulo: capa.label,
+    forma: capa.simboloLeyenda,
+    /** Falso mientras la capa se descarga (o si no se pudo descargar). */
+    cargada: conteosCapas[capa.id] !== undefined,
+    filas: (capa.leyenda ?? []).map((item) => ({
+      key: item.label,
+      label: item.label,
+      color: item.color,
+      valor: conteosCapas[capa.id]?.[item.label] ?? 0,
+    })),
+  }));
+
+  const [exportando, setExportando] = useState(false);
+  const [errorExportar, setErrorExportar] = useState<string | null>(null);
+
+  async function exportar() {
+    setExportando(true);
+    setErrorExportar(null);
+    try {
+      await exportarCensoExcel({
+        distrito: nombreDistritoElegido,
+        luminarias: datos,
+        grupos: [
+          ...(verTodos ? [{ titulo: "Luminarias por distrito", filas: filasPorDistrito }] : []),
+          { titulo: "Tasadas vs. no tasadas", filas: filasTasada },
+          { titulo: "Tipos de luminaria", filas: filasTipo },
+          // Una capa que aún no terminó de cargar se omite, en vez de exportarla en ceros.
+          ...graficosCapas.filter((g) => g.cargada),
+        ],
+      });
+    } catch (err) {
+      console.error("Error al exportar el censo:", err);
+      setErrorExportar("No se pudo generar el archivo de Excel.");
+    } finally {
+      setExportando(false);
+    }
+  }
 
   return (
     <div className="absolute inset-0 z-[999] overflow-y-auto bg-white/95 p-4 pt-28">
-      <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-2">
-        <GraficoBarras titulo="Tasadas vs. no tasadas" filas={filasTasada} />
-        <GraficoBarras titulo="Tipos de luminaria" filas={filasTipo} />
-        {capasConLeyenda.map((capa) => (
-          <GraficoBarras
-            key={capa.id}
-            titulo={capa.label}
-            forma={capa.simboloLeyenda}
-            filas={(capa.leyenda ?? []).map((item) => ({
-              key: item.label,
-              label: item.label,
-              color: item.color,
-              valor: conteosCapas[capa.id]?.[item.label] ?? 0,
-            }))}
-          />
-        ))}
+      <div className="mx-auto max-w-3xl space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-base font-bold text-slate-900">{config.titulo}</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <SelectorDistrito distritos={distritos} valor={distrito} onChange={setDistrito} />
+            <button
+              type="button"
+              onClick={exportar}
+              disabled={exportando || datos.length === 0}
+              className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {exportando ? "Generando…" : "Exportar a Excel"}
+            </button>
+          </div>
+        </div>
+
+        {errorExportar && (
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
+            {errorExportar}
+          </p>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {verTodos && <GraficoBarras titulo="Luminarias por distrito" filas={filasPorDistrito} />}
+          <GraficoBarras titulo="Tasadas vs. no tasadas" filas={filasTasada} />
+          <GraficoBarras titulo="Tipos de luminaria" filas={filasTipo} />
+          {graficosCapas.map((grafico) => (
+            <GraficoBarras
+              key={grafico.id}
+              titulo={grafico.titulo}
+              forma={grafico.forma}
+              filas={grafico.filas}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
