@@ -189,7 +189,6 @@ const censoConfig: MapaConfig = {
   popupTitulo: (row) => `ID: ${row.id}`,
   popupCampos: (row) => [
     { label: "Tipo", value: row.tipo || "N/D" },
-    { label: "Potencia", value: row.potencia || "N/D" },
   ],
   addForm: {
     fieldKey: "tipo",
@@ -313,7 +312,6 @@ const reporteConfig: MapaConfig = {
   editableOpciones: ["buena", "dañada", "mantenimiento"],
   popupTitulo: (row) => `Luminaria ${row.id}`,
   popupCampos: (row) => [
-    { label: "Potencia", value: row.potencia || "N/D" },
     { label: "Estado", value: row.estado || "N/D" },
     { label: "Distrito", value: row.distrito || "N/D" },
     { label: "Tipo", value: row.tipo || "N/D" },

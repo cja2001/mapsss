@@ -4,6 +4,8 @@ import type { MapaConfig } from "./colorConfig";
 export type PopupHandlers = {
   onGuardarEdicion: (nuevoValor: string) => void;
   onGuardarTasada?: (nuevoValor: boolean) => void;
+  /** Si se define, la potencia se muestra como un campo editable en vez de texto. */
+  onGuardarPotencia?: (nuevoValor: string) => void;
   onGuardarServicio?: (nuevoValor: Servicio | null) => void;
   cargarHistorial?: () => Promise<CambioTipoLuminaria[]>;
 };
@@ -72,7 +74,8 @@ function crearSeccionHistorial(cargarHistorial: () => Promise<CambioTipoLuminari
 }
 
 export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: PopupHandlers) {
-  const { onGuardarEdicion, onGuardarTasada, onGuardarServicio, cargarHistorial } = handlers;
+  const { onGuardarEdicion, onGuardarTasada, onGuardarServicio, onGuardarPotencia, cargarHistorial } =
+    handlers;
 
   const wrapper = document.createElement("div");
   wrapper.className = "min-w-[170px] text-sm";
@@ -87,6 +90,47 @@ export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: 
     p.innerHTML = `<b>${label}:</b> ${value}`;
     wrapper.appendChild(p);
   });
+
+  if (onGuardarPotencia) {
+    const potenciaFila = document.createElement("div");
+    potenciaFila.className = "mt-1.5 flex items-center gap-1.5";
+
+    const texto = document.createElement("b");
+    texto.textContent = "Potencia:";
+
+    const potenciaInput = document.createElement("input");
+    potenciaInput.type = "text";
+    potenciaInput.value = row.potencia ?? "";
+    potenciaInput.placeholder = "N/D";
+    potenciaInput.setAttribute("aria-label", "Potencia");
+    potenciaInput.className = `min-w-0 flex-1 ${CLASE_SELECT}`;
+
+    const potenciaBtn = document.createElement("button");
+    potenciaBtn.type = "button";
+    potenciaBtn.textContent = "Guardar";
+    potenciaBtn.className =
+      "rounded bg-brand-600 px-2 py-1 text-xs font-semibold text-white hover:bg-brand-500 disabled:opacity-50";
+    potenciaBtn.disabled = true;
+
+    // El botón solo se activa cuando hay un valor nuevo y no vacío.
+    const valorNuevo = () => potenciaInput.value.trim();
+    const hayCambio = () => valorNuevo() !== "" && valorNuevo() !== (row.potencia ?? "").trim();
+    const guardar = () => {
+      if (hayCambio()) onGuardarPotencia(valorNuevo());
+    };
+    potenciaInput.oninput = () => {
+      potenciaBtn.disabled = !hayCambio();
+    };
+    potenciaInput.onkeydown = (e) => {
+      if (e.key === "Enter") guardar();
+    };
+    potenciaBtn.onclick = guardar;
+
+    potenciaFila.appendChild(texto);
+    potenciaFila.appendChild(potenciaInput);
+    potenciaFila.appendChild(potenciaBtn);
+    wrapper.appendChild(potenciaFila);
+  }
 
   if (config.editableServicio) {
     const servicioLabel = document.createElement("label");

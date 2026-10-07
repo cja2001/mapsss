@@ -178,6 +178,13 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
               alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
             }
           },
+          onGuardarPotencia: async (nuevoValor) => {
+            try {
+              await updateLuminaria(row.id, { potencia: nuevoValor });
+            } catch (err) {
+              alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
+            }
+          },
           onGuardarServicio: async (nuevoValor) => {
             try {
               await updateLuminaria(row.id, { servicio: nuevoValor });
