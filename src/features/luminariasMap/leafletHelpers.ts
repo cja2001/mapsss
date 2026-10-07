@@ -106,13 +106,14 @@ export function agregarControlUbicacion(map: L.Map) {
  * de React (vía createPortal). Se bloquea la propagación de clics/scroll para
  * que no lleguen al mapa.
  */
-function crearControlAnfitrion(map: L.Map): HTMLDivElement {
+function crearControlAnfitrion(map: L.Map, zIndex?: number): HTMLDivElement {
   const control = new L.Control({ position: "topleft" });
   let container!: HTMLDivElement;
 
   control.onAdd = () => {
     container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
     container.style.position = "relative";
+    if (zIndex !== undefined) container.style.zIndex = String(zIndex);
     L.DomEvent.disableClickPropagation(container);
     L.DomEvent.disableScrollPropagation(container);
     return container;
@@ -124,7 +125,10 @@ function crearControlAnfitrion(map: L.Map): HTMLDivElement {
 
 /** Control (topleft, debajo del botón de ubicación) que aloja el menú de herramientas. */
 export function agregarControlHerramientas(map: L.Map): HTMLDivElement {
-  return crearControlAnfitrion(map);
+  // Los controles de Leaflet comparten z-index (800), así que los que van
+  // después en la esquina se dibujan encima. Este se sube un nivel para que su
+  // panel desplegable tape al botón de leyenda que queda debajo, y no al revés.
+  return crearControlAnfitrion(map, 801);
 }
 
 /** Control (topleft, debajo del de herramientas) que aloja el botón de leyenda. */
