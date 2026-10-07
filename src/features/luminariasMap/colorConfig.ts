@@ -333,8 +333,8 @@ const reporteConfig: MapaConfig = {
       { value: "mantenimiento", label: "En Mantenimiento" },
     ],
   },
-  // El reporte muestra las mismas capas que el censo (colonias, parcelario y calles).
-  capasExtra: censoConfig.capasExtra,
+  // El reporte muestra las capas del censo menos el parcelario (solo colonias y calles).
+  capasExtra: censoConfig.capasExtra.filter((capa) => capa.id !== "parcelario"),
 };
 
 export function getMapConfig(mode: MapMode): MapaConfig {

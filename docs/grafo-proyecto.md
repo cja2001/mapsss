@@ -97,6 +97,7 @@ flowchart TD
       LuminariasMap --> extraLayers
       LuminariasMap --> popupContent
       LuminariasMap --> historialTipo
+      paneles --> exportarReporteExcel
       LuminariasMap --> measureTool
       LuminariasMap --> useColoniasBuscador
       controles --> useColoniasBuscador
@@ -185,8 +186,9 @@ Un error real de Supabase descarta la mutación. Un error de red detiene la sinc
 | Servicio nuevo o antiguo | editable en el popup y obligatorio al añadir | visible en el popup y obligatorio al añadir |
 
 | Dashboard | `DashboardPanel.tsx`: tasadas, tipos y calles | `ReporteDashboard.tsx`: por reparar, reparadas por mes y estados |
+| Exportar a Excel | no | `exportarReporteExcel.ts`: resumen con gráficos como imagen y detalle de luminarias, con ExcelJS cargado bajo demanda |
 
-Ambos modos comparten `LuminariasMap.tsx`, la barra superior, las herramientas y las capas extra. Toda diferencia entre ellos debe expresarse en `colorConfig.ts`, no con condicionales nuevos en el componente.
+Ambos modos comparten `LuminariasMap.tsx`, la barra superior, las herramientas y las capas extra, salvo el parcelario, que solo se muestra en el censo. Toda diferencia entre ellos debe expresarse en `colorConfig.ts`, no con condicionales nuevos en el componente.
 
 ## 6. Build y despliegue
 

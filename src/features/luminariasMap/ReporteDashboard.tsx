@@ -1,4 +1,6 @@
+import { useState } from "react";
 import type { Luminaria } from "../../lib/types";
+import { exportarReporteExcel } from "./exportarReporteExcel";
 import type { MapaConfig } from "./colorConfig";
 import { useOnlineStatus } from "../../lib/useOnlineStatus";
 import { GraficoBarras } from "./DashboardPanel";
@@ -133,9 +135,55 @@ export function ReporteDashboard({
   const totalPorReparar = porReparar.reduce((acc, f) => acc + f.valor, 0);
   const reparadasEsteMes = reparaciones.meses[reparaciones.meses.length - 1]?.valor ?? 0;
 
+  const [exportando, setExportando] = useState(false);
+  const [errorExportar, setErrorExportar] = useState<string | null>(null);
+  const exportarDeshabilitado = loading || reparaciones.cargando || exportando;
+
+  async function exportar() {
+    setExportando(true);
+    setErrorExportar(null);
+    try {
+      const categoriasPorReparar = config.statsCategories.filter((cat) =>
+        CLAVES_POR_REPARAR.includes(cat.key)
+      );
+      await exportarReporteExcel({
+        luminarias: data,
+        porReparar: data.filter((d) =>
+          categoriasPorReparar.some((cat) => cat.matches(d[config.editableField]))
+        ),
+        filasEstado,
+        meses: reparaciones.meses,
+        reparacionesDisponibles: !reparaciones.error,
+      });
+    } catch (err) {
+      console.error("Error al exportar el reporte:", err);
+      setErrorExportar("No se pudo generar el archivo de Excel.");
+    } finally {
+      setExportando(false);
+    }
+  }
+
   return (
     <div className="absolute inset-0 z-[999] overflow-y-auto bg-white/95 p-4 pt-28">
       <div className="mx-auto max-w-3xl space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-base font-bold text-slate-900">{config.titulo}</h2>
+          <button
+            type="button"
+            onClick={exportar}
+            disabled={exportarDeshabilitado}
+            className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {exportando ? "Generando…" : "Exportar a Excel"}
+          </button>
+        </div>
+
+        {errorExportar && (
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
+            {errorExportar}
+          </p>
+        )}
+
         {error && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
             Error: {error}
