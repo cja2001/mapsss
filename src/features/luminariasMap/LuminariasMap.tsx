@@ -9,6 +9,11 @@ import { ReporteDashboard } from "./ReporteDashboard";
 import { DashboardPanel } from "./DashboardPanel";
 import { LeyendaPanel } from "./LeyendaPanel";
 import { MapToolsMenu } from "./MapToolsMenu";
+import {
+  aplicarPreferenciasEtiquetas,
+  guardarPreferenciasEtiquetas,
+  leerPreferenciasEtiquetas,
+} from "./etiquetasColonias";
 import { MapLegendButton } from "./MapLegendButton";
 import { MapTopBar, type MapVista } from "./MapTopBar";
 import { cargarDistritos } from "./districtsLayer";
@@ -43,6 +48,7 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
   const [leyendaActiva, setLeyendaActiva] = useState(false);
   const [toolsContainer, setToolsContainer] = useState<HTMLDivElement | null>(null);
   const [leyendaContainer, setLeyendaContainer] = useState<HTMLDivElement | null>(null);
+  const [etiquetas, setEtiquetas] = useState(leerPreferenciasEtiquetas);
 
   const { buscarSugerencias } = useColoniasBuscador();
   const sugerenciasBusqueda = buscarSugerencias(queryBusqueda);
@@ -125,6 +131,12 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
+
+  // Aplica (y recuerda) el tamaño y la visibilidad de las etiquetas de colonias
+  useEffect(() => {
+    guardarPreferenciasEtiquetas(etiquetas);
+    if (mapRef.current) aplicarPreferenciasEtiquetas(mapRef.current, etiquetas);
+  }, [etiquetas, mode]);
 
   // Dibuja los marcadores cada vez que cambian los datos
   useEffect(() => {
@@ -290,6 +302,8 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
             medicionTexto={medicionTexto}
             onToggleMedir={alternarMedir}
             onBorrarMedicion={borrarMedicion}
+            etiquetas={etiquetas}
+            onEtiquetasChange={setEtiquetas}
           />,
           toolsContainer
         )}

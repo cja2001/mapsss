@@ -1,4 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  TAMANO_ETIQUETA_MAX,
+  TAMANO_ETIQUETA_MIN,
+  type PreferenciasEtiquetas,
+} from "./etiquetasColonias";
 
 /**
  * Botón "engrane" que se agrega como control de Leaflet (topleft, debajo del
@@ -12,7 +17,11 @@ export function MapToolsMenu({
   medicionTexto,
   onToggleMedir,
   onBorrarMedicion,
+  etiquetas,
+  onEtiquetasChange,
 }: {
+  etiquetas: PreferenciasEtiquetas;
+  onEtiquetasChange: (preferencias: PreferenciasEtiquetas) => void;
   onAdd: () => void;
   addActivo: boolean;
   medirActivo: boolean;
@@ -94,6 +103,40 @@ export function MapToolsMenu({
               </button>
             </div>
           )}
+
+          <div className="space-y-2 border-t border-slate-200 px-1 pt-2 text-xs text-slate-700">
+            <p className="font-semibold text-slate-900">Etiquetas de colonias</p>
+
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={etiquetas.visibles}
+                onChange={(e) => onEtiquetasChange({ ...etiquetas, visibles: e.target.checked })}
+              />
+              Mostrar nombres
+            </label>
+
+            <label className="block">
+              <span className="flex items-center justify-between">
+                Tamaño del texto
+                <strong className="tabular-nums text-slate-900">{etiquetas.tamano} px</strong>
+              </span>
+              <input
+                type="range"
+                min={TAMANO_ETIQUETA_MIN}
+                max={TAMANO_ETIQUETA_MAX}
+                step={1}
+                value={etiquetas.tamano}
+                disabled={!etiquetas.visibles}
+                onChange={(e) => onEtiquetasChange({ ...etiquetas, tamano: Number(e.target.value) })}
+                className="mt-1 w-full disabled:opacity-50"
+              />
+            </label>
+
+            <p className="text-[11px] leading-snug text-slate-400">
+              Se ven al activar la capa Colonias en el control de capas.
+            </p>
+          </div>
         </div>
       )}
     </div>

@@ -213,7 +213,6 @@ const censoConfig: MapaConfig = {
       leyendaPorPropiedad: () => "Colonias",
       lazy: false,
       interactive: false,
-      visiblePorDefecto: true,
     },
     {
       id: "parcelario",
@@ -233,7 +232,6 @@ const censoConfig: MapaConfig = {
         { label: "Frente (m)", propKey: "FRENTE_MT_" },
       ],
       lazy: true,
-      visiblePorDefecto: true,
     },
     {
       id: "calles",

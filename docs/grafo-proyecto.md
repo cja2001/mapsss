@@ -13,7 +13,7 @@ flowchart LR
     AUTH["Sesión y roles<br/>src/auth"]
     LIB["Cliente y utilidades<br/>src/lib"]
     SW["Service worker Workbox<br/>vite.config.ts"]
-    LS[("localStorage<br/>perfil, cola offline, banner")]
+    LS[("localStorage<br/>perfil, cola offline, banner,<br/>etiquetas de colonias")]
   end
 
   subgraph Estaticos["Archivos estáticos public/"]
@@ -97,6 +97,8 @@ flowchart TD
       LuminariasMap --> extraLayers
       LuminariasMap --> popupContent
       LuminariasMap --> historialTipo
+      LuminariasMap --> etiquetasColonias
+      controles --> etiquetasColonias
       paneles --> exportarReporteExcel
       LuminariasMap --> measureTool
       LuminariasMap --> useColoniasBuscador
@@ -218,3 +220,4 @@ Comandos locales: `npm run dev`, `npm run build`, `npm run lint` (oxlint). No ha
 | Comportamiento offline o caché | `vite.config.ts` (Workbox), `lib/offlineQueue.ts` |
 | Gestión de usuarios | `features/adminUsuarios/`, `supabase/functions/create-user/index.ts` |
 | Controles y barra del mapa | `MapTopBar.tsx`, `MapToolsMenu.tsx`, `MapLegendButton.tsx`, `leaflet-overrides.css` |
+| Etiquetas de colonias (tamaño y visibilidad) | `luminariasMap/etiquetasColonias.ts`, apartado en `MapToolsMenu.tsx`, variable CSS en `leaflet-overrides.css` |

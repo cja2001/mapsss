@@ -18,7 +18,7 @@
   border: none !important;
   box-shadow: none !important;
   font-weight: 700;
-  font-size: 10px;
+  font-size: var(--colonia-label-size, 10px);
   color: #fff;
   text-shadow:
     -1px -1px 0 #000,
@@ -36,4 +36,9 @@
    se empuja hasta la segunda fila, justo debajo del botón "Menú". */
 .leaflet-with-topbar .leaflet-top.leaflet-right {
   margin-top: 64px;
+}
+
+/* Preferencia del usuario (menú de herramientas): ocultar los nombres de las colonias. */
+.sin-etiquetas-colonias .colonia-label {
+  display: none !important;
 }
