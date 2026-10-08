@@ -1,11 +1,13 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
+// Propiedades del botón: las de un <button> normal más la variante visual y el estado de carga.
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "danger" | "ghost";
   loading?: boolean;
   children: ReactNode;
 };
 
+// Clases de Tailwind de cada variante visual.
 const VARIANT_CLASSES: Record<string, string> = {
   primary:
     "bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-900/40 disabled:bg-brand-800 disabled:text-slate-400",
@@ -16,6 +18,7 @@ const VARIANT_CLASSES: Record<string, string> = {
   ghost: "bg-transparent hover:bg-white/10 text-brand-300 disabled:opacity-50",
 };
 
+/** Botón de la app. Mientras `loading` es true se desactiva y muestra un indicador giratorio. */
 export function Button({
   variant = "primary",
   loading = false,
@@ -30,6 +33,7 @@ export function Button({
       disabled={disabled || loading}
       {...rest}
     >
+      {/* Indicador giratorio mientras se espera. */}
       {loading && (
         <svg
           className="animate-spin"

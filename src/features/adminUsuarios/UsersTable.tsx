@@ -5,6 +5,7 @@ import { Alert } from "../../components/Alert";
 import type { Rol, UsuarioConRol } from "../../lib/types";
 import { useCreateUserFn } from "./useCreateUserFn";
 
+/** Tabla de usuarios: permite cambiar el rol, activar o desactivar y eliminar. */
 export function UsersTable({
   usuarios,
   roles,
@@ -20,10 +21,12 @@ export function UsersTable({
   alternarActivo: (authUserId: string, activoActual: boolean) => Promise<void>;
   recargar: () => Promise<void>;
 }) {
+  // Acción de eliminar (Edge Function), mensaje de resultado y fila que se está eliminando.
   const { eliminarUsuario } = useCreateUserFn();
   const [msg, setMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
+  // Cambia el rol de un usuario.
   async function onCambiarRol(authUserId: string, rolId: string) {
     try {
       await actualizarRol(authUserId, parseInt(rolId, 10));
@@ -33,6 +36,7 @@ export function UsersTable({
     }
   }
 
+  // Activa o desactiva un usuario, previa confirmación.
   async function onToggleActivo(u: UsuarioConRol) {
     const accion = u.activo ? "desactivar" : "activar";
     if (!confirm(`¿Seguro que deseas ${accion} este usuario?`)) return;
@@ -45,6 +49,7 @@ export function UsersTable({
     }
   }
 
+  // Elimina un usuario de forma permanente, previa confirmación, y recarga la tabla.
   async function onEliminar(authUserId: string) {
     if (!confirm("¿Seguro que deseas eliminar este usuario permanentemente? Esta acción no se puede deshacer.")) return;
 
@@ -64,6 +69,7 @@ export function UsersTable({
     <Card className="overflow-x-auto">
       <h2 className="mb-4 text-lg font-bold text-white">Usuarios</h2>
 
+      {/* Mensaje de éxito o de error de la última acción. */}
       {msg && (
         <div className="mb-3">
           <Alert message={msg.text} type={msg.type} />
@@ -82,6 +88,7 @@ export function UsersTable({
           </tr>
         </thead>
         <tbody>
+          {/* Tres casos: cargando, sin usuarios, o una fila por usuario. */}
           {loading ? (
             <tr>
               <td colSpan={6} className="py-6 text-center text-slate-400">
@@ -100,6 +107,7 @@ export function UsersTable({
                 <td className="py-2 pr-3">{u.nombre || "—"}</td>
                 <td className="py-2 pr-3">{u.apellido || "—"}</td>
                 <td className="py-2 pr-3">{u.email || "N/D"}</td>
+                {/* Selector de rol: guarda al cambiar. */}
                 <td className="py-2 pr-3">
                   <select
                     className="rounded border border-white/10 bg-white/5 px-2 py-1 text-xs text-slate-100"
@@ -113,9 +121,11 @@ export function UsersTable({
                     ))}
                   </select>
                 </td>
+                {/* Estado activo / inactivo. */}
                 <td className="py-2 pr-3">
                   <Badge active={u.activo} />
                 </td>
+                {/* Acciones: activar o desactivar, y eliminar. */}
                 <td className="py-2 pr-3">
                   <div className="flex gap-2">
                     <button

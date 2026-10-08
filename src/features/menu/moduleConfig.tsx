@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { ROLES } from "../../lib/types";
 
+/** Un módulo del menú: su texto, la ruta a la que lleva, su ícono y los roles que lo ven. */
 export type ModuloMenu = {
   id: string;
   label: string;
@@ -9,6 +10,7 @@ export type ModuloMenu = {
   roles: string[];
 };
 
+/** Ícono del módulo de administración de usuarios. */
 function AdminIcon() {
   return (
     <svg
@@ -29,6 +31,7 @@ function AdminIcon() {
   );
 }
 
+// Lista de módulos del menú. Para añadir uno nuevo también hay que registrar su ruta en App.tsx.
 export const MODULOS: ModuloMenu[] = [
   {
     id: "modulo-luminarias",

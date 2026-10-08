@@ -1,5 +1,6 @@
 import L from "leaflet";
 
+/** Las acciones de la herramienta de medir. */
 export type Medidor = {
   activar: () => void;
   detener: () => void;
@@ -7,6 +8,7 @@ export type Medidor = {
   destruir: () => void;
 };
 
+/** Distancia en metros o, a partir de 1000 m, en kilómetros. */
 function formatearDistancia(metros: number) {
   if (metros >= 1000) return `${(metros / 1000).toFixed(2)} km`;
   return `${Math.round(metros)} m`;
@@ -17,11 +19,13 @@ function formatearDistancia(metros: number) {
  * dibuja una línea entre los puntos y reporta la distancia acumulada vía `onCambiar`.
  */
 export function crearMedidor(map: L.Map, onCambiar: (texto: string | null) => void): Medidor {
+  // Capa propia para los puntos y la línea, lista de puntos y estado.
   const layer = L.layerGroup().addTo(map);
   let puntos: L.LatLng[] = [];
   let polyline: L.Polyline | null = null;
   let activo = false;
 
+  // Suma la distancia entre puntos consecutivos y la reporta.
   function recalcular() {
     let total = 0;
     for (let i = 1; i < puntos.length; i++) {
@@ -30,6 +34,7 @@ export function crearMedidor(map: L.Map, onCambiar: (texto: string | null) => vo
     onCambiar(puntos.length > 0 ? formatearDistancia(total) : null);
   }
 
+  // Cada clic añade un punto, lo dibuja y actualiza la línea.
   function onClick(e: L.LeafletMouseEvent) {
     puntos.push(e.latlng);
 
@@ -52,6 +57,7 @@ export function crearMedidor(map: L.Map, onCambiar: (texto: string | null) => vo
     recalcular();
   }
 
+  // Empieza una medición nueva.
   function activar() {
     limpiar();
     activo = true;
@@ -60,6 +66,7 @@ export function crearMedidor(map: L.Map, onCambiar: (texto: string | null) => vo
     map.on("click", onClick);
   }
 
+  // Deja de escuchar clics, conservando lo dibujado.
   function detener() {
     if (!activo) return;
     activo = false;
@@ -68,6 +75,7 @@ export function crearMedidor(map: L.Map, onCambiar: (texto: string | null) => vo
     map.off("click", onClick);
   }
 
+  // Borra la medición.
   function limpiar() {
     detener();
     layer.clearLayers();
@@ -76,6 +84,7 @@ export function crearMedidor(map: L.Map, onCambiar: (texto: string | null) => vo
     onCambiar(null);
   }
 
+  // Elimina la herramienta del mapa.
   function destruir() {
     detener();
     layer.remove();

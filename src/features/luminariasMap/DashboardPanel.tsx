@@ -11,14 +11,17 @@ import {
   listarDistritos,
 } from "./distritos";
 
+/** Una barra de un gráfico: su etiqueta, color y valor. */
 type FilaBarra = { key: string; label: string; color: string; valor: number };
 
+// Colores de los gráficos.
 const COLOR_TASADA = "#1d4ed8";
 const COLOR_NO_TASADA = "#64748b";
 const COLOR_DISTRITO = "#1d4ed8";
 /** Las capas con conteo (Calles) solo tienen datos de este distrito; con otro distrito elegido no se muestran. */
 const DISTRITO_DE_LAS_CAPAS = "san marcos";
 
+/** Gráfico de barras horizontales con cantidad y porcentaje por categoría. Lo usan ambos dashboards. */
 export function GraficoBarras({
   titulo,
   filas,
@@ -28,6 +31,7 @@ export function GraficoBarras({
   filas: FilaBarra[];
   forma?: "punto" | "linea";
 }) {
+  // El valor mayor define el ancho completo; el total sirve para los porcentajes.
   const max = Math.max(1, ...filas.map((f) => f.valor));
   const total = filas.reduce((acc, f) => acc + f.valor, 0);
 
@@ -35,6 +39,7 @@ export function GraficoBarras({
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <h3 className="mb-3 text-sm font-bold text-slate-900">{titulo}</h3>
 
+      {/* Sin datos se muestra un aviso; con datos, una fila por categoría. */}
       {total === 0 ? (
         <p className="text-xs text-slate-400">Sin datos todavía.</p>
       ) : (
@@ -44,6 +49,7 @@ export function GraficoBarras({
             const anchoPct = (f.valor / max) * 100;
             return (
               <div key={f.key}>
+                {/* Etiqueta con su color a la izquierda; cantidad y porcentaje a la derecha. */}
                 <div className="mb-1 flex items-center justify-between text-xs">
                   <span className="flex items-center gap-1.5 font-medium text-slate-700">
                     <span
@@ -61,6 +67,7 @@ export function GraficoBarras({
                     <span className="ml-1 font-normal text-slate-400">{pct}%</span>
                   </span>
                 </div>
+                {/* La barra, con ancho proporcional al valor mayor. */}
                 <div className="h-3 overflow-hidden rounded-sm bg-slate-100">
                   <div
                     title={`${f.label}: ${f.valor.toLocaleString("es-SV")} (${pct}%)`}
@@ -77,13 +84,16 @@ export function GraficoBarras({
   );
 }
 
+/** Dashboard del censo: gráficos de tasadas, tipos, distritos y calles, con filtro por distrito y exportación a Excel. */
 export function DashboardPanel({ data, config }: { data: Luminaria[]; config: MapaConfig }) {
+  // Capas que tienen conteo por categoría (hoy, solo Calles) y sus conteos.
   const capasConLeyenda = useMemo(
     () => config.capasExtra.filter((capa) => capa.leyenda && capa.leyendaPorPropiedad),
     [config.capasExtra]
   );
   const conteosCapas = useConteosPorCapa(capasConLeyenda);
 
+  // Filtro por distrito.
   const [distrito, setDistrito] = useState(TODOS_LOS_DISTRITOS);
   const distritos = useMemo(() => listarDistritos(data), [data]);
   /** Las luminarias del distrito elegido (o todas). Todo el dashboard se calcula sobre estas. */
@@ -91,6 +101,7 @@ export function DashboardPanel({ data, config }: { data: Luminaria[]; config: Ma
   const verTodos = distrito === TODOS_LOS_DISTRITOS;
   const nombreDistritoElegido = distritos.find((d) => d.clave === distrito)?.nombre;
 
+  // Datos de cada gráfico, calculados sobre el distrito elegido.
   const filasTasada: FilaBarra[] = [
     {
       key: "tasada",
@@ -113,9 +124,11 @@ export function DashboardPanel({ data, config }: { data: Luminaria[]; config: Ma
     valor: datos.filter((d) => cat.matches(d[config.editableField])).length,
   }));
 
+  // Luminarias por distrito (siempre sobre todos los datos) y si corresponde mostrar las capas.
   const filasPorDistrito: FilaBarra[] = contarPorDistrito(data, distritos, COLOR_DISTRITO);
   const mostrarCapas = verTodos || distrito === DISTRITO_DE_LAS_CAPAS;
 
+  // Un gráfico por cada capa con conteo.
   const graficosCapas = (mostrarCapas ? capasConLeyenda : []).map((capa) => ({
     id: capa.id,
     titulo: capa.label,
@@ -130,9 +143,11 @@ export function DashboardPanel({ data, config }: { data: Luminaria[]; config: Ma
     })),
   }));
 
+  // Estado de la exportación a Excel.
   const [exportando, setExportando] = useState(false);
   const [errorExportar, setErrorExportar] = useState<string | null>(null);
 
+  // Genera el Excel con los mismos gráficos que se ven en pantalla.
   async function exportar() {
     setExportando(true);
     setErrorExportar(null);
@@ -159,6 +174,7 @@ export function DashboardPanel({ data, config }: { data: Luminaria[]; config: Ma
   return (
     <div className="absolute inset-0 z-[999] overflow-y-auto bg-white/95 p-4 pt-28">
       <div className="mx-auto max-w-3xl space-y-4">
+        {/* Encabezado: título, selector de distrito y botón de exportar. */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-bold text-slate-900">{config.titulo}</h2>
           <div className="flex flex-wrap items-center gap-2">
@@ -174,12 +190,14 @@ export function DashboardPanel({ data, config }: { data: Luminaria[]; config: Ma
           </div>
         </div>
 
+        {/* Error de la exportación, si lo hubo. */}
         {errorExportar && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
             {errorExportar}
           </p>
         )}
 
+        {/* Gráficos. */}
         <div className="grid gap-4 sm:grid-cols-2">
           {verTodos && <GraficoBarras titulo="Luminarias por distrito" filas={filasPorDistrito} />}
           <GraficoBarras titulo="Tasadas vs. no tasadas" filas={filasTasada} />

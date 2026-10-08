@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
+/** Un mes del gráfico con su número de reparaciones. */
 export type MesReparaciones = { clave: string; label: string; valor: number };
+/** Una reparación: qué luminaria y cuándo. */
 export type Reparacion = { luminariaId: number; fecha: string };
 
+// Cuántos meses se muestran y tamaño de página de las consultas.
 const MESES_A_MOSTRAR = 12;
 const PAGE_SIZE = 1000;
 /** Estados desde los que pasar a "buena" cuenta como una reparación. */
 const ESTADOS_POR_REPARAR = ["dañada", "danada", "mantenimiento"];
 
+/** Clave "AAAA-MM" de una fecha, para agrupar por mes. */
 function claveMes(fecha: Date) {
   return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
 }
@@ -51,6 +55,7 @@ export function contarReparacionesPorMes(
   return meses;
 }
 
+/** Descarga, por páginas, los cambios a "buena" desde la fecha indicada y conserva los que eran reparaciones. */
 async function cargarReparaciones(desde: Date): Promise<Reparacion[]> {
   const reparaciones: Reparacion[] = [];
   let inicio = 0;
@@ -67,6 +72,7 @@ async function cargarReparaciones(desde: Date): Promise<Reparacion[]> {
     if (error) throw error;
     if (!data || data.length === 0) break;
 
+    // Solo cuenta como reparación si antes estaba dañada o en mantenimiento.
     for (const fila of data) {
       const anterior = (fila.estado_anterior ?? "").toLowerCase().trim();
       if (ESTADOS_POR_REPARAR.includes(anterior)) {
@@ -87,10 +93,12 @@ async function cargarReparaciones(desde: Date): Promise<Reparacion[]> {
  * `luminarias_historial_estado`.
  */
 export function useReparaciones() {
+  // Reparaciones cargadas, estado de carga y error.
   const [reparaciones, setReparaciones] = useState<Reparacion[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Carga única al montar; si el componente se desmonta antes, se ignora la respuesta.
   useEffect(() => {
     let cancelado = false;
 

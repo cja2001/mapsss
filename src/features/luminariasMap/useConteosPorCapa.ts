@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { CapaExtraConfig } from "./colorConfig";
 
+/** Los datos mínimos de una capa que hacen falta para contarla. */
 export type CapaContable = Pick<
   CapaExtraConfig,
   "id" | "label" | "url" | "cargarDatos" | "leyendaPorPropiedad"
@@ -10,12 +11,14 @@ export type CapaContable = Pick<
 export function useConteosPorCapa(capas: CapaContable[]) {
   const [conteos, setConteos] = useState<Record<string, Record<string, number>>>({});
 
+  // Por cada capa: descarga sus datos y cuenta cuántos elementos caen en cada ítem de la leyenda.
   useEffect(() => {
     let cancelado = false;
 
     capas
       .filter((capa) => capa.leyendaPorPropiedad)
       .forEach((capa) => {
+        // Origen de los datos: función propia (Supabase) o archivo GeoJSON.
         const cargar = capa.cargarDatos
           ? capa.cargarDatos()
           : fetch(capa.url!).then((r) => {
@@ -23,6 +26,7 @@ export function useConteosPorCapa(capas: CapaContable[]) {
               return r.json();
             });
 
+        // Al llegar los datos se cuentan y se guardan; los errores solo se registran en consola.
         cargar
           .then((data: GeoJSON.FeatureCollection) => {
             if (cancelado) return;

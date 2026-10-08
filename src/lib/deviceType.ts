@@ -1,5 +1,6 @@
 export type TipoDispositivo = "movil" | "tablet" | "escritorio";
 
+// Patrones del User-Agent para reconocer tablets y teléfonos.
 const UA_TABLET = /ipad|android(?!.*mobile)|tablet/i;
 const UA_MOVIL = /iphone|ipod|android.*mobile|mobile.*android|windows phone|blackberry/i;
 
@@ -21,6 +22,7 @@ export function detectarTipoDispositivo(): TipoDispositivo {
     .userAgentData;
   const ua = navigator.userAgent;
 
+  // Se comprueba primero si es tablet, luego si es teléfono; lo demás se considera escritorio.
   if (UA_TABLET.test(ua) || esIpadComoMac()) return "tablet";
   if (UA_MOVIL.test(ua)) return "movil";
   if (uaData?.mobile) return "movil";

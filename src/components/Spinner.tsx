@@ -1,4 +1,6 @@
+/** Indicador de carga giratorio. Con `fullscreen` ocupa toda la pantalla, centrado. */
 export function Spinner({ fullscreen = false }: { fullscreen?: boolean }) {
+  // El ícono giratorio.
   const spinner = (
     <svg
       className="animate-spin text-brand-400"
@@ -13,8 +15,10 @@ export function Spinner({ fullscreen = false }: { fullscreen?: boolean }) {
     </svg>
   );
 
+  // Versión pequeña, para usar dentro de otros elementos.
   if (!fullscreen) return spinner;
 
+  // Versión a pantalla completa.
   return (
     <div className="app-shell-bg flex h-screen w-full items-center justify-center">
       {spinner}

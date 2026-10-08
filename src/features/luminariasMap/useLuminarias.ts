@@ -8,13 +8,16 @@ import {
   suscribirseColaPendiente,
 } from "../../lib/offlineQueue";
 
+// Supabase devuelve como máximo 1000 filas por consulta, así que se pide por páginas.
 const PAGE_SIZE = 1000;
 
+/** Descarga todas las luminarias, página por página, con las columnas indicadas. */
 async function fetchAllLuminarias(selectColumns: string): Promise<Luminaria[]> {
   let todos: Luminaria[] = [];
   let desde = 0;
   let continuar = true;
 
+  // Pide páginas hasta recibir una incompleta, que es la última.
   while (continuar) {
     const { data, error } = await supabase
       .from("luminarias")
@@ -32,12 +35,15 @@ async function fetchAllLuminarias(selectColumns: string): Promise<Luminaria[]> {
   return todos;
 }
 
+/** Hook de datos del mapa: carga las luminarias y permite editarlas y añadirlas, también sin conexión. */
 export function useLuminarias(selectColumns: string) {
+  // Luminarias cargadas, estado de carga, error y cambios pendientes de sincronizar.
   const [data, setData] = useState<Luminaria[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendientes, setPendientes] = useState(0);
 
+  // Vuelve a descargar todas las luminarias.
   const reload = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -51,10 +57,12 @@ export function useLuminarias(selectColumns: string) {
     }
   }, [selectColumns]);
 
+  // Carga inicial (y recarga si cambian las columnas pedidas).
   useEffect(() => {
     reload();
   }, [reload]);
 
+  // Mantiene actualizado el número de cambios pendientes de enviar.
   useEffect(() => suscribirseColaPendiente(setPendientes), []);
 
   // Reintenta enviar los cambios en espera al recuperar señal (y una vez al
@@ -70,6 +78,7 @@ export function useLuminarias(selectColumns: string) {
     return () => window.removeEventListener("online", intentarSincronizar);
   }, [reload]);
 
+  // Actualiza campos de una luminaria. Sin conexión, encola el cambio y lo refleja en pantalla.
   async function updateLuminaria(id: number, patch: Partial<Luminaria>) {
     if (!navigator.onLine) {
       encolarMutacion({ tipo: "update", luminariaId: id, patch });
@@ -77,6 +86,7 @@ export function useLuminarias(selectColumns: string) {
       return;
     }
 
+    // Con conexión: se guarda y se recargan los datos; si falla la red, se encola.
     try {
       const { error } = await supabase.from("luminarias").update(patch).eq("id", id);
       if (error) throw error;
@@ -88,6 +98,7 @@ export function useLuminarias(selectColumns: string) {
     }
   }
 
+  // Añade una luminaria. Sin conexión, encola el alta y muestra una fila temporal.
   async function insertLuminaria(row: Partial<Luminaria>) {
     if (!navigator.onLine) {
       encolarMutacion({ tipo: "insert", row });
@@ -95,6 +106,7 @@ export function useLuminarias(selectColumns: string) {
       return;
     }
 
+    // Con conexión: se inserta y se recargan los datos; si falla la red, se encola.
     try {
       const { error } = await supabase.from("luminarias").insert([row]);
       if (error) throw error;

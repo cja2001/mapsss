@@ -1,6 +1,9 @@
+// Edge Function create-user: crea (POST) o elimina (DELETE) usuarios con permisos de administrador.
+// Corre en los servidores de Supabase (Deno), no en el navegador, porque usa la clave service_role.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
+// Cabeceras CORS para que el navegador pueda llamar a la función desde el sitio.
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -12,6 +15,7 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders })
   }
 
+  // Solo se aceptan POST (crear) y DELETE (eliminar).
   if (req.method !== "POST" && req.method !== "DELETE") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
@@ -20,6 +24,7 @@ serve(async (req) => {
   }
 
   try {
+    // Credenciales del proyecto, que Supabase define en el entorno de la función.
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? ""
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? ""
@@ -88,6 +93,7 @@ serve(async (req) => {
       })
     }
 
+    // ─── DELETE: eliminar un usuario ───
     if (req.method === "DELETE") {
       // 4. Parse payload
       const { auth_user_id } = await req.json()
@@ -173,6 +179,7 @@ serve(async (req) => {
     })
 
   } catch (error: any) {
+    // Cualquier error se devuelve como respuesta 400 con su mensaje.
     return new Response(JSON.stringify({ error: error.message || "Unknown error" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

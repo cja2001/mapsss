@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import L, { type LatLngBounds } from "leaflet";
 
+/** Una colonia encontrada: su nombre, sus límites para centrar el mapa y su geometría para resaltarla. */
 export type ColoniaSugerencia = {
   nombre: string;
   bounds: LatLngBounds;
   feature: GeoJSON.Feature;
 };
 
+// Archivo de colonias y propiedad que contiene el nombre.
 const URL_COLONIAS = "/colonias-san-marcos.geojson";
 const CAMPO_NOMBRE = "text_1";
 
@@ -25,6 +27,7 @@ function normalizar(texto: string) {
 export function useColoniasBuscador() {
   const [colonias, setColonias] = useState<ColoniaSugerencia[]>([]);
 
+  // Carga única del archivo de colonias al montar.
   useEffect(() => {
     let cancelado = false;
 
@@ -36,6 +39,7 @@ export function useColoniasBuscador() {
       .then((data: GeoJSON.FeatureCollection) => {
         if (cancelado) return;
 
+        // Se conserva de cada colonia el nombre y sus límites; las que no tienen nombre o geometría se omiten.
         const lista: ColoniaSugerencia[] = [];
         for (const feature of data.features) {
           const nombre = feature.properties?.[CAMPO_NOMBRE];
@@ -56,6 +60,7 @@ export function useColoniasBuscador() {
     };
   }, []);
 
+  // Devuelve las colonias cuyo nombre contiene el texto buscado (hasta `limite`).
   const buscarSugerencias = useCallback(
     (texto: string, limite = 6): ColoniaSugerencia[] => {
       const q = normalizar(texto);

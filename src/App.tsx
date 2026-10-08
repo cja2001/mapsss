@@ -9,14 +9,18 @@ import { ReportePage } from "./features/luminariasMap/ReportePage";
 import { AdminUsuariosPage } from "./features/adminUsuarios/AdminUsuariosPage";
 import { InstallAppBanner } from "./components/InstallAppBanner";
 
+/** Componente raíz: define el enrutador, el proveedor de sesión y todas las rutas de la app. */
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        {/* Aviso para instalar la app; visible en cualquier ruta. */}
         <InstallAppBanner />
         <Routes>
+          {/* Ruta pública: inicio de sesión. */}
           <Route path="/" element={<LoginPage />} />
 
+          {/* Rutas protegidas: solo entran usuarios activos con alguno de los roles indicados. */}
           <Route
             path="/menu"
             element={
@@ -44,6 +48,7 @@ function App() {
             }
           />
 
+          {/* Administración de usuarios: solo el rol admin. */}
           <Route
             path="/admin/usuarios"
             element={
@@ -53,6 +58,7 @@ function App() {
             }
           />
 
+          {/* Cualquier otra dirección lleva al inicio de sesión. */}
           <Route path="*" element={<LoginPage />} />
         </Routes>
       </AuthProvider>

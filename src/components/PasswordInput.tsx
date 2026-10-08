@@ -1,9 +1,11 @@
 import { useId, useState, type InputHTMLAttributes } from "react";
 
+/** Campo de contraseña con un botón para mostrar u ocultar lo escrito. */
 export function PasswordInput({
   className = "",
   ...rest
 }: InputHTMLAttributes<HTMLInputElement>) {
+  // Si la contraseña se muestra como texto, y un id para la etiqueta accesible del botón.
   const [visible, setVisible] = useState(false);
   const labelId = useId();
 
@@ -14,6 +16,7 @@ export function PasswordInput({
         className={className}
         {...rest}
       />
+      {/* Botón del ojo: alterna entre mostrar y ocultar. */}
       <button
         type="button"
         aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}

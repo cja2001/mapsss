@@ -1,12 +1,15 @@
+// Capas GeoJSON adicionales del mapa (colonias, parcelario, calles): estilo, etiquetas, popups y carga.
 import L from "leaflet";
 import type { CapaExtraConfig } from "./colorConfig";
 import { asociarPuntoEtiqueta, reaplicarPuntoEtiqueta } from "./polygonLabelPoint";
 import { buildCapaPopupContent } from "./capaPopup";
 
+/** Devuelve la función que Leaflet llama por cada elemento de la capa para ponerle etiqueta y popup. */
 function buildOnEachFeature(capa: CapaExtraConfig) {
   return (feature: GeoJSON.Feature, layer: L.Layer) => {
     const props = feature.properties ?? {};
 
+    // Etiqueta permanente con el nombre, centrada dentro del polígono.
     if (capa.tooltipField && props[capa.tooltipField]) {
       layer.bindTooltip(String(props[capa.tooltipField]), {
         permanent: true,
@@ -16,6 +19,7 @@ function buildOnEachFeature(capa: CapaExtraConfig) {
       asociarPuntoEtiqueta(layer, feature.geometry);
     }
 
+    // Popup editable (si la capa lo permite) o popup de solo lectura.
     if (capa.camposEditables?.length && capa.guardarEdicion) {
       const contenido = buildCapaPopupContent(props, capa, async (cambios) => {
         await capa.guardarEdicion!(props, cambios);
@@ -59,6 +63,7 @@ export function agregarCapaExtra(
   capa: CapaExtraConfig,
   isCancelado: () => boolean
 ) {
+  // Estilo: color fijo, o calculado por elemento según sus propiedades.
   const style: L.PathOptions | L.StyleFunction = capa.colorPorPropiedad
     ? (feature) => ({
         color: capa.colorPorPropiedad!(feature?.properties ?? null),
@@ -70,6 +75,7 @@ export function agregarCapaExtra(
   const interactive = capa.interactive ?? true;
   const tieneEtiquetas = !!capa.tooltipField;
 
+  // Carga inmediata: se descarga ya y se registra en el control de capas.
   if (!capa.lazy) {
     cargarDatosCapa(capa)
       .then((data) => {
@@ -91,6 +97,7 @@ export function agregarCapaExtra(
     return;
   }
 
+  // Carga diferida: la capa se registra vacía y los datos se piden al activarla.
   const layer = L.geoJSON(undefined, { style, onEachFeature, interactive });
   controlCapas.addOverlay(layer, capa.label);
   if (tieneEtiquetas) {
@@ -99,6 +106,7 @@ export function agregarCapaExtra(
     });
   }
 
+  // Descarga los datos una sola vez; si falla, permite reintentar.
   let cargado = false;
   function cargar() {
     if (cargado || isCancelado()) return;
@@ -116,11 +124,13 @@ export function agregarCapaExtra(
       });
   }
 
+  // Si debe verse al abrir, se añade y se carga de inmediato.
   if (capa.visiblePorDefecto) {
     layer.addTo(map);
     cargar();
   }
 
+  // En cualquier caso, se carga cuando el usuario la activa.
   map.on("overlayadd", (e: L.LayersControlEvent) => {
     if (e.name === capa.label) cargar();
   });

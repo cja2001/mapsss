@@ -17,11 +17,13 @@ import {
   listarDistritos,
 } from "./distritos";
 
+// Colores de los gráficos.
 const COLOR_REPARADAS = "#1d4ed8";
 const COLOR_POR_REPARAR = "#ef4444";
 /** Claves de `statsCategories` del reporte que cuentan como reportadas y aún sin reparar. */
 const CLAVES_POR_REPARAR = ["danadas", "proceso"];
 
+/** Tarjeta con un número destacado, su título y un detalle opcional. */
 function Indicador({
   titulo,
   valor,
@@ -49,6 +51,7 @@ function Indicador({
   );
 }
 
+/** Gráfico de columnas con las luminarias reparadas en cada uno de los últimos 12 meses. */
 function GraficoReparadasPorMes({
   meses,
   cargando,
@@ -58,11 +61,13 @@ function GraficoReparadasPorMes({
   cargando: boolean;
   error: string | null;
 }) {
+  // El mes con más reparaciones define la altura completa.
   const max = Math.max(1, ...meses.map((m) => m.valor));
   const total = meses.reduce((acc, m) => acc + m.valor, 0);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:col-span-2">
+      {/* Título y total del periodo. */}
       <div className="mb-3 flex items-baseline justify-between gap-2">
         <h3 className="text-sm font-bold text-slate-900">Luminarias reparadas por mes</h3>
         {!cargando && !error && (
@@ -73,6 +78,7 @@ function GraficoReparadasPorMes({
         )}
       </div>
 
+      {/* Tres casos: cargando, error, o el gráfico. */}
       {cargando ? (
         <p className="text-xs text-slate-500">Cargando…</p>
       ) : error ? (
@@ -80,6 +86,7 @@ function GraficoReparadasPorMes({
       ) : (
         <>
           <div className="flex items-end gap-0.5 sm:gap-1.5" role="list">
+            {/* Una columna por mes: valor arriba, barra y nombre del mes abajo. */}
             {meses.map((m) => (
               <div
                 key={m.clave}
@@ -107,6 +114,7 @@ function GraficoReparadasPorMes({
             ))}
           </div>
 
+          {/* Aviso cuando todavía no hay reparaciones registradas. */}
           {total === 0 && (
             <p className="mt-3 text-xs text-slate-400">
               Aún no hay reparaciones registradas. Se cuentan desde que una luminaria dañada o en
@@ -119,6 +127,7 @@ function GraficoReparadasPorMes({
   );
 }
 
+/** Dashboard del reporte: por reparar, reparadas por mes y estados, con filtro por distrito y exportación a Excel. */
 export function ReporteDashboard({
   data,
   config,
@@ -133,9 +142,11 @@ export function ReporteDashboard({
   /** Nº de cambios hechos sin conexión que aún no se han enviado al servidor. */
   pendientes: number;
 }) {
+  // Estado de conexión e historial de reparaciones.
   const enLinea = useOnlineStatus();
   const reparaciones = useReparaciones();
 
+  // Filtro por distrito.
   const [distrito, setDistrito] = useState(TODOS_LOS_DISTRITOS);
   const distritos = useMemo(() => listarDistritos(data), [data]);
   /** Las luminarias del distrito elegido (o todas). Todo el dashboard se calcula sobre estas. */
@@ -143,17 +154,20 @@ export function ReporteDashboard({
   const verTodos = distrito === TODOS_LOS_DISTRITOS;
   const nombreDistritoElegido = distritos.find((d) => d.clave === distrito)?.nombre;
 
+  // Reparaciones por mes; con un distrito elegido, solo las de sus luminarias.
   const meses = useMemo(() => {
     if (verTodos) return contarReparacionesPorMes(reparaciones.reparaciones);
     const idsDelDistrito = new Set(datos.map((d) => d.id));
     return contarReparacionesPorMes(reparaciones.reparaciones, (id) => idsDelDistrito.has(id));
   }, [reparaciones.reparaciones, datos, verTodos]);
 
+  // Qué luminarias cuentan como reportadas y aún sin reparar.
   const categoriasPorReparar = config.statsCategories.filter((cat) =>
     CLAVES_POR_REPARAR.includes(cat.key)
   );
   const estaPorReparar = (d: Luminaria) =>
     categoriasPorReparar.some((cat) => cat.matches(d[config.editableField]));
+  // Desgloses por distrito (siempre sobre todos los datos).
   const filasPorRepararPorDistrito = contarPorDistrito(
     data,
     distritos,
@@ -162,6 +176,7 @@ export function ReporteDashboard({
   );
   const filasPorDistrito = contarPorDistrito(data, distritos, COLOR_REPARADAS);
 
+  // Conteo por estado del distrito elegido.
   const filasEstado = config.statsCategories.map((cat) => ({
     key: cat.key,
     label: cat.label,
@@ -169,14 +184,17 @@ export function ReporteDashboard({
     valor: datos.filter((d) => cat.matches(d[config.editableField])).length,
   }));
 
+  // Cifras de los indicadores.
   const porReparar = filasEstado.filter((f) => CLAVES_POR_REPARAR.includes(f.key));
   const totalPorReparar = porReparar.reduce((acc, f) => acc + f.valor, 0);
   const reparadasEsteMes = meses[meses.length - 1]?.valor ?? 0;
 
+  // Estado de la exportación a Excel.
   const [exportando, setExportando] = useState(false);
   const [errorExportar, setErrorExportar] = useState<string | null>(null);
   const exportarDeshabilitado = loading || reparaciones.cargando || exportando;
 
+  // Genera el Excel con los datos y gráficos que se ven en pantalla.
   async function exportar() {
     setExportando(true);
     setErrorExportar(null);
@@ -206,6 +224,7 @@ export function ReporteDashboard({
   return (
     <div className="absolute inset-0 z-[999] overflow-y-auto bg-white/95 p-4 pt-28">
       <div className="mx-auto max-w-3xl space-y-4">
+        {/* Encabezado: título, selector de distrito y botón de exportar. */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-bold text-slate-900">{config.titulo}</h2>
           <div className="flex flex-wrap items-center gap-2">
@@ -221,6 +240,7 @@ export function ReporteDashboard({
           </div>
         </div>
 
+        {/* Avisos: error de exportación, error de carga, sin conexión y cambios pendientes. */}
         {errorExportar && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
             {errorExportar}
@@ -246,10 +266,12 @@ export function ReporteDashboard({
           </p>
         )}
 
+        {/* Contenido: indicadores arriba y gráficos abajo. */}
         {loading ? (
           <p className="text-xs text-slate-500">Cargando datos…</p>
         ) : (
           <>
+            {/* Indicadores. */}
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <Indicador
                 titulo="Reportadas por reparar"
@@ -266,6 +288,7 @@ export function ReporteDashboard({
               />
             </div>
 
+            {/* Gráficos; los desgloses por distrito solo se muestran con todos los distritos. */}
             <div className="grid gap-4 sm:grid-cols-2">
               <GraficoReparadasPorMes
                 meses={meses}

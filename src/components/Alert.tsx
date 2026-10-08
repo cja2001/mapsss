@@ -1,3 +1,4 @@
+// Tipos de aviso y los colores de cada uno.
 type AlertType = "error" | "success" | "info";
 
 const TYPE_CLASSES: Record<AlertType, string> = {
@@ -6,6 +7,7 @@ const TYPE_CLASSES: Record<AlertType, string> = {
   info: "bg-brand-500/15 text-brand-300 border-brand-500/30",
 };
 
+/** Aviso de una línea (error, éxito o información). No muestra nada si el mensaje está vacío. */
 export function Alert({ message, type = "error" }: { message: string; type?: AlertType }) {
   if (!message) return null;
 

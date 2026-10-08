@@ -1,5 +1,7 @@
+// Preferencias del usuario sobre las etiquetas (nombres) de la capa de colonias.
 import L from "leaflet";
 
+/** Preferencias de las etiquetas de colonias. */
 export type PreferenciasEtiquetas = {
   /** Si se muestran los nombres de las colonias sobre el mapa. */
   visibles: boolean;
@@ -7,6 +9,7 @@ export type PreferenciasEtiquetas = {
   tamano: number;
 };
 
+// Límites del tamaño del texto y valores iniciales.
 export const TAMANO_ETIQUETA_MIN = 8;
 export const TAMANO_ETIQUETA_MAX = 24;
 export const PREFERENCIAS_ETIQUETAS_POR_DEFECTO: PreferenciasEtiquetas = {
@@ -14,12 +17,14 @@ export const PREFERENCIAS_ETIQUETAS_POR_DEFECTO: PreferenciasEtiquetas = {
   tamano: 10,
 };
 
+// Clave de localStorage, clase CSS de las etiquetas, clase que las oculta y variable CSS del tamaño.
 const CLAVE_STORAGE = "mapa_etiquetas_colonias";
 /** Debe coincidir con el `className` de los tooltips de la capa (extraLayers.ts) y con leaflet-overrides.css. */
 const CLASE_ETIQUETA = "colonia-label";
 const CLASE_OCULTAR = "sin-etiquetas-colonias";
 const VARIABLE_TAMANO = "--colonia-label-size";
 
+/** Lee las preferencias guardadas; si faltan o son inválidas, devuelve las iniciales. */
 export function leerPreferenciasEtiquetas(): PreferenciasEtiquetas {
   try {
     const raw = localStorage.getItem(CLAVE_STORAGE);
@@ -37,6 +42,7 @@ export function leerPreferenciasEtiquetas(): PreferenciasEtiquetas {
   }
 }
 
+/** Guarda las preferencias en localStorage. */
 export function guardarPreferenciasEtiquetas(preferencias: PreferenciasEtiquetas) {
   try {
     localStorage.setItem(CLAVE_STORAGE, JSON.stringify(preferencias));

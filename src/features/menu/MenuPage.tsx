@@ -5,15 +5,18 @@ import { Button } from "../../components/Button";
 import { MODULOS } from "./moduleConfig";
 import fondoImg from "../../assets/fondosss.webp";
 
+/** Menú principal: muestra los módulos a los que el rol del usuario tiene acceso. */
 export function MenuPage() {
   const { rol, signOut } = useAuth();
   const navigate = useNavigate();
 
+  // Cierra la sesión y vuelve al inicio de sesión.
   async function handleLogout() {
     await signOut();
     navigate("/");
   }
 
+  // Solo los módulos permitidos para el rol actual.
   const modulosVisibles = MODULOS.filter((m) => rol && m.roles.includes(rol));
 
   return (
@@ -23,6 +26,7 @@ export function MenuPage() {
     >
       <h1 className="text-3xl font-bold text-white">Bienvenido</h1>
 
+      {/* Una tarjeta-enlace por cada módulo visible. */}
       <div className="grid w-full max-w-2xl gap-4 sm:grid-cols-2">
         {modulosVisibles.map((modulo) => (
           <Link
@@ -38,6 +42,7 @@ export function MenuPage() {
         ))}
       </div>
 
+      {/* Cierre de sesión. */}
       <Button variant="secondary" onClick={handleLogout}>
         Cerrar sesión
       </Button>

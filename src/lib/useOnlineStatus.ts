@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 export function useOnlineStatus() {
   const [enLinea, setEnLinea] = useState(() => navigator.onLine);
 
+  // Se suscribe a los eventos de conexión del navegador y se desuscribe al desmontar.
   useEffect(() => {
     function marcarEnLinea() {
       setEnLinea(true);

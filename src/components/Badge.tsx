@@ -1,3 +1,4 @@
+/** Etiqueta "Activo" / "Inactivo" para el estado de un usuario. */
 export function Badge({ active }: { active: boolean }) {
   return (
     <span

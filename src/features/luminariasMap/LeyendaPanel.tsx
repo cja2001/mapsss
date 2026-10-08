@@ -3,6 +3,7 @@ import type { Luminaria } from "../../lib/types";
 import type { MapaConfig } from "./colorConfig";
 import { useConteosPorCapa, type CapaContable } from "./useConteosPorCapa";
 
+// Color con que se muestra la capa de distritos en la leyenda.
 const COLOR_DISTRITOS = "#1e3a8a";
 
 /** Capa de distritos: no es parte de `capasExtra` (se carga aparte en districtsLayer.ts), pero se cuenta igual. */
@@ -13,6 +14,7 @@ const CAPA_DISTRITOS: CapaContable = {
   leyendaPorPropiedad: () => "Distritos",
 };
 
+/** Muestra de color de la leyenda: un punto o una línea. */
 function Swatch({ color, forma = "punto" }: { color: string; forma?: "punto" | "linea" }) {
   if (forma === "linea") {
     return <span className="h-0.5 w-3.5 shrink-0 rounded-full" style={{ background: color }} />;
@@ -20,6 +22,7 @@ function Swatch({ color, forma = "punto" }: { color: string; forma?: "punto" | "
   return <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color }} />;
 }
 
+/** Panel de leyenda: lista las capas del mapa y las categorías de luminarias, con sus cantidades. */
 export function LeyendaPanel({
   data,
   config,
@@ -29,9 +32,11 @@ export function LeyendaPanel({
   config: MapaConfig;
   onCerrar: () => void;
 }) {
+  // Conteo de elementos de cada capa (distritos más las capas extra).
   const capasContables = useMemo(() => [CAPA_DISTRITOS, ...config.capasExtra], [config.capasExtra]);
   const conteos = useConteosPorCapa(capasContables);
 
+  // Capas a listar, cada una con sus ítems de leyenda.
   const capasLeyenda = [
     {
       id: CAPA_DISTRITOS.id,
@@ -49,6 +54,7 @@ export function LeyendaPanel({
 
   return (
     <div className="absolute bottom-3 right-3 z-[1000] w-64 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-900 shadow-2xl">
+      {/* Encabezado con el botón de cerrar. */}
       <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
         <h2 className="text-sm font-bold">Leyenda</h2>
         <button
@@ -62,12 +68,14 @@ export function LeyendaPanel({
       </div>
 
       <div className="max-h-[60vh] space-y-4 overflow-y-auto px-4 py-3">
+        {/* Sección de capas del mapa. */}
         <div>
           <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
             Capas del mapa
           </h3>
           <div className="space-y-2">
             {capasLeyenda.map((capa) => {
+              // Cantidad de cada ítem; el total solo se muestra cuando ya cargaron todos.
               const conteosCapa = capa.items.map((item) => conteos[capa.id]?.[item.label]);
               const totalListo = conteosCapa.every((n) => n !== undefined);
               const total = conteosCapa.reduce((acc: number, n) => acc + (n ?? 0), 0);
@@ -111,6 +119,7 @@ export function LeyendaPanel({
           </div>
         </div>
 
+        {/* Sección de categorías de luminarias (tipos en el censo, estados en el reporte). */}
         <div>
           <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
             {config.editableLabel === "tipo" ? "Tipos de luminaria" : "Estado de luminarias"}

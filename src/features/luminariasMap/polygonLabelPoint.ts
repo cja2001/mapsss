@@ -1,5 +1,7 @@
+// Cálculo del mejor punto para colocar la etiqueta de un polígono (colonias y distritos).
 import L from "leaflet";
 
+// Un punto y un anillo (contorno cerrado) en coordenadas [lng, lat].
 type Punto = [number, number]; // [lng, lat]
 type Anillo = Punto[];
 
@@ -26,6 +28,7 @@ class Celda {
   }
 }
 
+/** Distancia de un punto al borde del polígono; positiva si está dentro, negativa si está fuera. */
 function distanciaAlBorde(x: number, y: number, anillos: Anillo[]) {
   let dentro = false;
   let distMinCuadrada = Infinity;
@@ -46,6 +49,7 @@ function distanciaAlBorde(x: number, y: number, anillos: Anillo[]) {
   return (dentro ? 1 : -1) * Math.sqrt(distMinCuadrada);
 }
 
+/** Distancia al cuadrado de un punto a un segmento. */
 function distanciaSegmentoCuadrada(px: number, py: number, a: Punto, b: Punto) {
   let x = a[0];
   let y = a[1];
@@ -68,6 +72,7 @@ function distanciaSegmentoCuadrada(px: number, py: number, a: Punto, b: Punto) {
   return dx * dx + dy * dy;
 }
 
+/** Centroide geométrico de un anillo. */
 function centroide(anillo: Anillo): Punto {
   let x = 0;
   let y = 0;
@@ -85,6 +90,7 @@ function centroide(anillo: Anillo): Punto {
   return area === 0 ? anillo[0] : [x / area, y / area];
 }
 
+/** Área de un anillo. */
 function areaAnillo(anillo: Anillo) {
   let suma = 0;
   for (let i = 0, len = anillo.length, j = len - 1; i < len; j = i++) {
@@ -95,7 +101,9 @@ function areaAnillo(anillo: Anillo) {
   return Math.abs(suma / 2);
 }
 
+/** Busca el punto interior más alejado de los bordes, subdividiendo celdas hasta alcanzar la precisión deseada. */
 function poloDeInaccesibilidad(anillos: Anillo[]): Punto {
+  // Caja que contiene al polígono.
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
@@ -112,6 +120,7 @@ function poloDeInaccesibilidad(anillos: Anillo[]): Punto {
   const alto = maxY - minY;
   if (ancho === 0 || alto === 0) return [minX, minY];
 
+  // Se cubre la caja con celdas cuadradas iniciales.
   const tamCelda = Math.min(ancho, alto);
   const precision = tamCelda / 40;
   let h = tamCelda / 2;
@@ -123,12 +132,14 @@ function poloDeInaccesibilidad(anillos: Anillo[]): Punto {
     }
   }
 
+  // Candidatos iniciales: el centroide y el centro de la caja.
   const [cx, cy] = centroide(anillos[0]);
   let mejor = new Celda(cx, cy, 0, anillos);
 
   const celdaCaja = new Celda(minX + ancho / 2, minY + alto / 2, 0, anillos);
   if (celdaCaja.d > mejor.d) mejor = celdaCaja;
 
+  // Se procesa primero la celda más prometedora; las que aún pueden mejorar el resultado se dividen en cuatro.
   while (cola.length) {
     cola.sort((a, b) => b.max - a.max);
     const celda = cola.pop() as Celda;
@@ -150,6 +161,7 @@ function poloDeInaccesibilidad(anillos: Anillo[]): Punto {
 export function calcularPuntoEtiqueta(geometry: GeoJSON.Geometry): L.LatLng | null {
   let anillos: Anillo[] | null = null;
 
+  // De un MultiPolygon se usa la parte de mayor área.
   if (geometry.type === "Polygon") {
     anillos = geometry.coordinates as Anillo[];
   } else if (geometry.type === "MultiPolygon") {
@@ -167,6 +179,7 @@ export function calcularPuntoEtiqueta(geometry: GeoJSON.Geometry): L.LatLng | nu
   return L.latLng(lat, lng);
 }
 
+// Capas de Leaflet a las que se les guarda el punto de etiqueta, o que tienen tooltip.
 export type LayerConPuntoEtiqueta = L.Layer & { _puntoEtiqueta?: L.LatLng };
 type LayerConTooltip = L.Layer & { getTooltip?: () => L.Tooltip | undefined };
 

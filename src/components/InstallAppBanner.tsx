@@ -2,6 +2,7 @@ import { useState } from "react";
 import { detectarTipoDispositivo, esIOS } from "../lib/deviceType";
 import { useInstallPrompt } from "../lib/useInstallPrompt";
 
+// Clave de localStorage que recuerda que el usuario cerró el aviso.
 const CLAVE_DESCARTADO = "instalar_app_descartado";
 
 /**
@@ -10,23 +11,28 @@ const CLAVE_DESCARTADO = "instalar_app_descartado";
  * las instrucciones manuales de "Compartir → Agregar a pantalla de inicio".
  */
 export function InstallAppBanner() {
+  // Estado: tipo de dispositivo, si el aviso fue descartado y si el navegador ofrece instalar.
   const [dispositivo] = useState(detectarTipoDispositivo);
   const [descartado, setDescartado] = useState(
     () => localStorage.getItem(CLAVE_DESCARTADO) === "1"
   );
   const { disponible, instalada, instalar } = useInstallPrompt();
 
+  // En iOS no hay instalación automática: se muestran instrucciones manuales.
   const esMovilOTablet = dispositivo === "movil" || dispositivo === "tablet";
   const instruccionesIOS = esMovilOTablet && !disponible && esIOS();
 
+  // No se muestra en escritorio, si ya está instalada, si se descartó o si no hay forma de instalar.
   if (!esMovilOTablet || instalada || descartado) return null;
   if (!disponible && !instruccionesIOS) return null;
 
+  // Cierra el aviso y recuerda la decisión.
   function descartar() {
     localStorage.setItem(CLAVE_DESCARTADO, "1");
     setDescartado(true);
   }
 
+  // Lanza la instalación nativa; si se acepta, el aviso ya no vuelve a mostrarse.
   async function manejarInstalar() {
     const aceptado = await instalar();
     if (aceptado) descartar();
@@ -38,6 +44,7 @@ export function InstallAppBanner() {
         📲
       </span>
 
+      {/* Texto: instrucciones para iOS o invitación a instalar. */}
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-slate-900">Instala la app</p>
         <p className="text-xs text-slate-500">
@@ -47,6 +54,7 @@ export function InstallAppBanner() {
         </p>
       </div>
 
+      {/* Botón Instalar (no aplica en iOS). */}
       {!instruccionesIOS && (
         <button
           type="button"
@@ -57,6 +65,7 @@ export function InstallAppBanner() {
         </button>
       )}
 
+      {/* Botón para cerrar el aviso. */}
       <button
         type="button"
         onClick={descartar}

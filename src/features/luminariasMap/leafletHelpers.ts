@@ -1,10 +1,13 @@
+// Utilidades de Leaflet para el mapa: capas base, tamaño de los puntos y controles propios.
 import L from "leaflet";
 
+/** Crea las dos capas base del mapa: normal y satelital. */
 export function crearCapasBase() {
   // Tiles de Google (endpoint no oficial, sin API key). No pasa por Google Maps
   // Platform: úsese como solución rápida, no como integración a largo plazo.
   const subdomains = ["mt0", "mt1", "mt2", "mt3"];
 
+  // Mapa normal (calles).
   const osm = L.tileLayer("https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
     subdomains,
     maxZoom: 24,
@@ -12,6 +15,7 @@ export function crearCapasBase() {
     attribution: "&copy; Google",
   });
 
+  // Vista satelital (híbrida, con nombres de calles).
   const satelital = L.tileLayer("https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", {
     subdomains,
     maxZoom: 24,
@@ -22,6 +26,7 @@ export function crearCapasBase() {
   return { osm, satelital };
 }
 
+/** Radio en píxeles de los puntos de luminarias según el nivel de zoom: más cerca, más grandes. */
 export function obtenerRadioZoom(zoom: number) {
   if (zoom >= 23) return 14;
   if (zoom >= 21) return 10;
@@ -43,6 +48,7 @@ export function agregarControlUbicacion(map: L.Map) {
   let ultimaUbicacion: L.LatLng | null = null;
   let centrarEnProximaUbicacion = true;
 
+  // Botón 📍 del control.
   control.onAdd = () => {
     const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
     const btn = L.DomUtil.create("a", "", div) as HTMLAnchorElement;
@@ -55,6 +61,7 @@ export function agregarControlUbicacion(map: L.Map) {
     btn.style.textDecoration = "none";
     btn.style.cursor = "pointer";
 
+    // Al pulsarlo: centra en la última ubicación conocida, o en la próxima que llegue.
     L.DomEvent.on(btn, "click", (e) => {
       L.DomEvent.stopPropagation(e);
       L.DomEvent.preventDefault(e);
@@ -70,8 +77,10 @@ export function agregarControlUbicacion(map: L.Map) {
 
   control.addTo(map);
 
+  // Punto azul que marca la posición del usuario.
   let userMarker: L.CircleMarker | null = null;
 
+  // Cada vez que llega una ubicación: se mueve (o se crea) el punto y, si corresponde, se centra el mapa.
   map.on("locationfound", (e: L.LocationEvent) => {
     ultimaUbicacion = e.latlng;
     const textoPopup = `Estás a aprox. ${Math.round(e.accuracy / 2)} metros de este punto`;
@@ -96,6 +105,7 @@ export function agregarControlUbicacion(map: L.Map) {
     }
   });
 
+  // Inicia el seguimiento continuo de la ubicación.
   map.locate({ watch: true, enableHighAccuracy: true, maximumAge: 5000 });
 
   return () => map.stopLocate();

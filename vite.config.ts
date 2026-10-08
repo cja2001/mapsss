@@ -1,3 +1,4 @@
+// Configuración de Vite: plugins de React y Tailwind, y la PWA (manifest y caché sin conexión).
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -9,10 +10,12 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    // PWA: genera el service worker y el manifest para poder instalar la app y usarla sin conexión.
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       includeAssets: ['icons/luminarias.png', 'icons/bulbo.png', 'icons/logo.png'],
+      // Datos de la app instalada: nombre, colores e íconos.
       manifest: {
         name: 'MAPSSS Luminarias',
         short_name: 'Luminarias',
@@ -28,10 +31,12 @@ export default defineConfig({
           { src: '/icons/logo.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
+      // Service worker (Workbox): qué archivos se guardan y con qué estrategia.
       workbox: {
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'],
+        // Reglas de caché para las peticiones hechas mientras se usa la app.
         runtimeCaching: [
           {
             // Tiles del mapa base (Google, mapa normal y satelital): se cachean
@@ -70,11 +75,13 @@ export default defineConfig({
             },
           },
           {
+            // Hojas de estilo de Google Fonts: se sirve la copia guardada y se actualiza en segundo plano.
             urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com',
             handler: 'StaleWhileRevalidate',
             options: { cacheName: 'google-fonts-stylesheets' },
           },
           {
+            // Archivos de fuentes: casi nunca cambian, se guardan por un año.
             urlPattern: ({ url }) => url.origin === 'https://fonts.gstatic.com',
             handler: 'CacheFirst',
             options: {

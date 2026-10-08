@@ -1,13 +1,16 @@
+// Exportación del reporte a Excel. También contiene las utilidades de gráficos y de hojas que reutiliza la exportación del censo.
 import type { Workbook, Worksheet } from "exceljs";
 import type { Luminaria } from "../../lib/types";
 import type { MesReparaciones } from "./useReparacionesPorMes";
 import { nombreDistrito } from "./distritos";
 
+/** Una categoría con su valor, para una tabla o un gráfico. */
 export type FilaEstado = { key: string; label: string; color: string; valor: number };
 
 /** Una tabla con su gráfico de barras: el título y las categorías que cuenta. */
 export type GrupoDatos = { titulo: string; filas: FilaEstado[] };
 
+/** Todo lo que necesita el Excel del reporte. */
 export type DatosReporte = {
   /** Nombre del distrito al que se filtraron los datos; sin definir si son todos. */
   distrito?: string;
@@ -22,6 +25,7 @@ export type DatosReporte = {
   reparacionesDisponibles: boolean;
 };
 
+// Colores, fuente y escala (2x, para que las imágenes se vean nítidas) de los gráficos.
 const COLOR_REPARADAS = "#1d4ed8";
 const COLOR_ENCABEZADO = "FF1D4ED8";
 const FUENTE = "Arial, Helvetica, sans-serif";
@@ -29,6 +33,7 @@ const ESCALA = 2;
 
 // ---------- Gráficos (se dibujan en un canvas y se incrustan como imagen) ----------
 
+/** Crea un lienzo con fondo blanco y el título del gráfico ya dibujado. */
 function crearLienzo(ancho: number, alto: number, titulo: string) {
   const canvas = document.createElement("canvas");
   canvas.width = ancho * ESCALA;
@@ -55,11 +60,13 @@ function topeEje(max: number) {
   return paso * magnitud;
 }
 
+/** Dibuja el gráfico de columnas de reparaciones por mes y lo devuelve como imagen PNG. */
 function graficoColumnas(titulo: string, meses: MesReparaciones[]) {
   const ancho = 640;
   const alto = 300;
   const { canvas, ctx } = crearLienzo(ancho, alto, titulo);
 
+  // Márgenes y área útil del gráfico.
   const izquierda = 44;
   const derecha = 16;
   const arriba = 56;
@@ -84,6 +91,7 @@ function graficoColumnas(titulo: string, meses: MesReparaciones[]) {
     ctx.fillText(((tope * i) / 4).toLocaleString("es-SV"), izquierda - 8, y);
   }
 
+  // Una columna por mes, con su valor encima y el nombre del mes debajo.
   const paso = anchoPlot / Math.max(1, meses.length);
   const anchoBarra = Math.min(34, paso * 0.62);
   ctx.textAlign = "center";
@@ -114,6 +122,7 @@ function graficoColumnas(titulo: string, meses: MesReparaciones[]) {
   return canvas.toDataURL("image/png");
 }
 
+/** Dibuja un gráfico de barras horizontales (una por categoría) y lo devuelve como imagen PNG junto con su alto. */
 export function graficoBarrasHorizontales(titulo: string, filas: FilaEstado[]) {
   const ancho = 640;
   const altoFila = 40;
@@ -121,11 +130,13 @@ export function graficoBarrasHorizontales(titulo: string, filas: FilaEstado[]) {
   const alto = arriba + filas.length * altoFila + 12;
   const { canvas, ctx } = crearLienzo(ancho, alto, titulo);
 
+  // Zona de las barras y valores de referencia para proporciones y porcentajes.
   const inicioBarra = 150;
   const finBarra = ancho - 130;
   const total = filas.reduce((acc, f) => acc + f.valor, 0);
   const max = Math.max(1, ...filas.map((f) => f.valor));
 
+  // Por cada categoría: etiqueta, fondo de la barra, barra y valor con porcentaje.
   filas.forEach((f, i) => {
     const centroY = arriba + i * altoFila + altoFila / 2;
     const largo = f.valor > 0 ? Math.max(2, (f.valor / max) * (finBarra - inicioBarra)) : 0;
@@ -157,6 +168,7 @@ export function graficoBarrasHorizontales(titulo: string, filas: FilaEstado[]) {
 
 // ---------- Libro de Excel ----------
 
+/** Da formato de encabezado (fondo azul, texto blanco en negrita) a las primeras celdas de una fila. */
 export function estiloEncabezado(hoja: Worksheet, fila: number, columnas: number) {
   for (let c = 1; c <= columnas; c++) {
     const celda = hoja.getCell(fila, c);
@@ -166,12 +178,14 @@ export function estiloEncabezado(hoja: Worksheet, fila: number, columnas: number
   }
 }
 
+/** Escribe el título de una sección en la primera columna. */
 export function tituloSeccion(hoja: Worksheet, fila: number, texto: string) {
   const celda = hoja.getCell(fila, 1);
   celda.value = texto;
   celda.font = { bold: true, size: 12 };
 }
 
+/** Texto a mostrar para el campo servicio. */
 function etiquetaServicio(servicio: Luminaria["servicio"]) {
   if (servicio === "nuevo") return "Nuevo";
   if (servicio === "antiguo") return "Antiguo";
@@ -241,6 +255,7 @@ export function agregarGrupos(
   }
 }
 
+/** Una columna del listado de luminarias. */
 export type ColumnaLuminaria = { header: string; key: string; width: number };
 
 /** Columnas del listado de luminarias. Cada exportación elige las que tienen datos en su modo. */
@@ -256,16 +271,19 @@ export const COLUMNAS_LUMINARIA: ColumnaLuminaria[] = [
   { header: "Longitud", key: "lng", width: 14 },
 ];
 
+/** Añade una hoja con el listado de luminarias: encabezado fijo, una fila por luminaria y filtros. */
 export function agregarHojaLuminarias(
   libro: Workbook,
   nombre: string,
   luminarias: Luminaria[],
   columnas: ColumnaLuminaria[] = COLUMNAS_LUMINARIA
 ) {
+  // Hoja con la primera fila inmovilizada y el encabezado con formato.
   const hoja = libro.addWorksheet(nombre, { views: [{ state: "frozen", ySplit: 1 }] });
   hoja.columns = columnas;
   estiloEncabezado(hoja, 1, hoja.columns.length);
 
+  // Una fila por luminaria, con textos legibles en lugar de valores vacíos.
   hoja.addRows(
     luminarias.map((l) => ({
       id: l.id > 0 ? l.id : "Pendiente de sincronizar",
@@ -280,6 +298,7 @@ export function agregarHojaLuminarias(
     }))
   );
 
+  // Filtros automáticos en el encabezado.
   hoja.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: hoja.columns.length } };
   return hoja;
 }
@@ -301,6 +320,7 @@ export async function construirLibroReporte(datos: DatosReporte, generado = new 
   const resumen = libro.addWorksheet("Resumen");
   encabezadoResumen(resumen, "Reporte de luminarias", generado, distrito);
 
+  // Tabla de indicadores.
   let fila = 5;
   tituloSeccion(resumen, fila++, "Indicadores");
   resumen.getRow(fila).values = ["Indicador", "Cantidad"];
@@ -320,6 +340,7 @@ export async function construirLibroReporte(datos: DatosReporte, generado = new 
     resumen.getRow(fila++).values = valores;
   });
 
+  // Tabla de estados con cantidad y porcentaje.
   fila++;
   tituloSeccion(resumen, fila++, "Estado de las luminarias");
   resumen.getRow(fila).values = ["Estado", "Cantidad", "Porcentaje"];
@@ -334,6 +355,7 @@ export async function construirLibroReporte(datos: DatosReporte, generado = new 
   resumen.getCell(fila, 3).numFmt = "0.0%";
   fila += 2;
 
+  // Tabla de reparaciones por mes (o un aviso si no se pudo cargar el historial).
   tituloSeccion(resumen, fila++, "Luminarias reparadas por mes");
   if (reparacionesDisponibles) {
     resumen.getRow(fila).values = ["Mes", "Reparadas"];
@@ -366,6 +388,7 @@ export async function construirLibroReporte(datos: DatosReporte, generado = new 
   });
   filaImagen += filasQueOcupa(estado.alto);
 
+  // Tablas y gráficos adicionales (desgloses por distrito).
   agregarGrupos(libro, resumen, grupos, fila, filaImagen);
 
   // ----- Hojas de detalle -----

@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
+/** Contenedor con borde, fondo y sombra para agrupar contenido. */
 export function Card({
   children,
   className = "",

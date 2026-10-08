@@ -1,8 +1,10 @@
 import { Link } from "react-router";
 import type { ColoniaSugerencia } from "./useColoniasBuscador";
 
+/** Las dos vistas entre las que alterna la barra superior. */
 export type MapVista = "mapa" | "dashboard";
 
+// Íconos de la barra (SVG).
 function IconSearch() {
   return (
     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -40,6 +42,7 @@ function IconDashboard() {
   );
 }
 
+/** Barra superior del mapa: buscador de colonias, botón Menú y selector Mapa / Dashboard. */
 export function MapTopBar({
   vista,
   onVistaChange,
@@ -55,9 +58,11 @@ export function MapTopBar({
   sugerencias: ColoniaSugerencia[];
   onSeleccionarColonia: (colonia: ColoniaSugerencia) => void;
 }) {
+  // Cuándo mostrar la lista de sugerencias o el aviso de "sin resultados".
   const mostrarSugerencias = query.trim().length > 0 && sugerencias.length > 0;
   const sinResultados = query.trim().length > 0 && sugerencias.length === 0;
 
+  // Enter elige la primera sugerencia; Escape limpia la búsqueda.
   function manejarTeclado(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" && sugerencias.length > 0) {
       onSeleccionarColonia(sugerencias[0]);
@@ -68,11 +73,13 @@ export function MapTopBar({
 
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-[1000] flex flex-col gap-2.5 p-3">
+      {/* Primera fila: buscador y botón Menú. */}
       <div className="flex items-center gap-2.5">
         {/* Espaciador invisible: reserva el ancho aprox. del botón "Menú" para que la
             barra de búsqueda quede centrada de verdad entre ambos lados. */}
         <div className="w-[92px] shrink-0" />
 
+        {/* Campo de búsqueda con su lista de sugerencias. */}
         <div className="pointer-events-auto relative min-w-0 flex-1">
           <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-slate-500 shadow-lg">
             <input
@@ -109,6 +116,7 @@ export function MapTopBar({
           )}
         </div>
 
+        {/* Enlace de vuelta al menú principal. */}
         <Link
           to="/menu"
           className="pointer-events-auto flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-lg hover:bg-slate-50"
@@ -118,6 +126,7 @@ export function MapTopBar({
         </Link>
       </div>
 
+      {/* Segunda fila: selector de vista. */}
       <div className="flex items-center gap-2.5">
         {/* Espaciador invisible: deja libre la zona de los controles de zoom de Leaflet. */}
         <div className="w-[52px] shrink-0" />

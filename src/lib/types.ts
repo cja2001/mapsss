@@ -1,8 +1,10 @@
+/** Rol de usuario, tal como está en la tabla roles. */
 export type Rol = {
   id: number;
   nombre: string;
 };
 
+/** Usuario de la app, tal como está en la tabla usuarios. */
 export type Usuario = {
   auth_user_id: string;
   email: string | null;
@@ -12,10 +14,12 @@ export type Usuario = {
   activo: boolean;
 };
 
+/** Usuario junto con el nombre de su rol (resultado de unir usuarios con roles). */
 export type UsuarioConRol = Usuario & {
   roles: { nombre: string } | null;
 };
 
+/** Luminaria, tal como está en la tabla luminarias. */
 export type Luminaria = {
   id: number;
   lat: number | null;
@@ -29,8 +33,10 @@ export type Luminaria = {
   servicio: Servicio | null;
 };
 
+/** Valores permitidos para el campo servicio. */
 export type Servicio = "nuevo" | "antiguo";
 
+// Opciones de servicio con su etiqueta, para los selectores.
 export const SERVICIOS: { value: Servicio; label: string }[] = [
   { value: "nuevo", label: "Nuevo" },
   { value: "antiguo", label: "Antiguo" },
@@ -47,6 +53,7 @@ export type CambioLuminaria = {
   cambiado_en: string;
 };
 
+// Nombres de los roles, iguales a los de la tabla roles.
 export const ROLES = {
   ADMIN: "admin",
   EDITOR_LUMINARIAS: "editor_luminarias",

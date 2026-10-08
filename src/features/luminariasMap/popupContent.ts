@@ -1,6 +1,8 @@
+// Contenido de los popups del mapa. Se construye con elementos del DOM (no con React) porque Leaflet los inserta directamente.
 import { SERVICIOS, type CambioLuminaria, type Luminaria, type Servicio } from "../../lib/types";
 import type { MapaConfig } from "./colorConfig";
 
+/** Acciones que el popup puede disparar; las que no se definen no muestran su control. */
 export type PopupHandlers = {
   onGuardarEdicion: (nuevoValor: string) => void;
   onGuardarTasada?: (nuevoValor: boolean) => void;
@@ -10,8 +12,10 @@ export type PopupHandlers = {
   cargarHistorial?: () => Promise<CambioLuminaria[]>;
 };
 
+// Clases de Tailwind compartidas por los selectores y campos del popup.
 const CLASE_SELECT = "rounded border border-slate-300 px-1.5 py-1 text-xs";
 
+/** Fecha y hora en formato corto local; si no es una fecha válida, devuelve el texto original. */
 function formatearFecha(iso: string) {
   const fecha = new Date(iso);
   return Number.isNaN(fecha.getTime())
@@ -19,6 +23,7 @@ function formatearFecha(iso: string) {
     : fecha.toLocaleString("es-SV", { dateStyle: "short", timeStyle: "short" });
 }
 
+// Nombre visible de cada campo en el historial.
 const ETIQUETA_CAMPO: Record<CambioLuminaria["campo"], string> = {
   tipo: "Tipo",
   potencia: "Potencia",
@@ -26,6 +31,7 @@ const ETIQUETA_CAMPO: Record<CambioLuminaria["campo"], string> = {
 
 /** Enlace "Ver historial de cambios" que, al pulsarlo, descarga y lista los cambios de tipo y de potencia de la luminaria. */
 function crearSeccionHistorial(cargarHistorial: () => Promise<CambioLuminaria[]>) {
+  // Contenedor, botón para cargar el historial y lista donde se muestran los cambios.
   const seccion = document.createElement("div");
   seccion.className = "mt-2.5 border-t border-slate-200 pt-2";
 
@@ -37,6 +43,7 @@ function crearSeccionHistorial(cargarHistorial: () => Promise<CambioLuminaria[]>
   const lista = document.createElement("div");
   lista.className = "mt-1.5 max-h-32 space-y-1 overflow-y-auto text-xs";
 
+  // Al pulsar: descarga el historial y pinta un elemento por cada cambio.
   boton.onclick = async () => {
     boton.disabled = true;
     lista.textContent = "Cargando…";
@@ -48,6 +55,7 @@ function crearSeccionHistorial(cargarHistorial: () => Promise<CambioLuminaria[]>
         return;
       }
       cambios.forEach((cambio) => {
+        // Cada cambio: una línea principal (campo y valores) y un detalle (fecha y autor).
         const item = document.createElement("div");
 
         const linea = document.createElement("div");
@@ -80,10 +88,12 @@ function crearSeccionHistorial(cargarHistorial: () => Promise<CambioLuminaria[]>
   return seccion;
 }
 
+/** Construye el popup de una luminaria existente: datos, campos editables e historial. */
 export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: PopupHandlers) {
   const { onGuardarEdicion, onGuardarTasada, onGuardarServicio, onGuardarPotencia, cargarHistorial } =
     handlers;
 
+  // Contenedor y título.
   const wrapper = document.createElement("div");
   wrapper.className = "min-w-[170px] text-sm";
 
@@ -92,12 +102,14 @@ export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: 
   titulo.textContent = config.popupTitulo(row);
   wrapper.appendChild(titulo);
 
+  // Datos de solo lectura definidos por el modo.
   config.popupCampos(row).forEach(({ label, value }) => {
     const p = document.createElement("div");
     p.innerHTML = `<b>${label}:</b> ${value}`;
     wrapper.appendChild(p);
   });
 
+  // Potencia: campo de texto con su botón Guardar.
   if (onGuardarPotencia) {
     const potenciaFila = document.createElement("div");
     potenciaFila.className = "mt-1.5 flex items-center gap-1.5";
@@ -139,6 +151,7 @@ export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: 
     wrapper.appendChild(potenciaFila);
   }
 
+  // Servicio (solo en el censo): selector que guarda al cambiar.
   if (config.editableServicio) {
     const servicioLabel = document.createElement("label");
     servicioLabel.className = "mt-1.5 flex items-center gap-1.5";
@@ -163,6 +176,7 @@ export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: 
     wrapper.appendChild(servicioLabel);
   }
 
+  // Tasada (solo en el censo): casilla que guarda al cambiar.
   if (config.editableTasada) {
     const tasadaLabel = document.createElement("label");
     tasadaLabel.className = "mt-1.5 flex items-center gap-1.5";
@@ -177,6 +191,7 @@ export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: 
     wrapper.appendChild(tasadaLabel);
   }
 
+  // Campo principal del modo (tipo o estado): selector con botón Guardar.
   const form = document.createElement("div");
   form.className = "mt-2.5 flex items-center gap-1.5";
 
@@ -211,10 +226,12 @@ export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: 
   return wrapper;
 }
 
+/** Construye el formulario del popup para añadir una luminaria nueva. */
 export function buildAddFormContent(
   config: MapaConfig,
   onGuardar: (valores: { campo: string; potencia: string; servicio: Servicio }) => void
 ) {
+  // Contenedor y título.
   const wrapper = document.createElement("div");
   wrapper.className = "min-w-[170px] text-sm";
 
@@ -223,6 +240,7 @@ export function buildAddFormContent(
   titulo.textContent = "Nueva Luminaria";
   wrapper.appendChild(titulo);
 
+  // Campo principal del modo (tipo o estado).
   const campoLabel = document.createElement("label");
   campoLabel.className = "mb-1 block text-xs";
   campoLabel.textContent = `${config.addForm.fieldLabel}:`;
@@ -238,6 +256,7 @@ export function buildAddFormContent(
   });
   wrapper.appendChild(select);
 
+  // Servicio: obligatorio, nuevo o antiguo.
   const servicioLabel = document.createElement("label");
   servicioLabel.className = "mb-1 block text-xs";
   servicioLabel.textContent = "Servicio:";
@@ -253,6 +272,7 @@ export function buildAddFormContent(
   });
   wrapper.appendChild(servicioSelect);
 
+  // Potencia: obligatoria.
   const potenciaLabel = document.createElement("label");
   potenciaLabel.className = "mb-1 block text-xs";
   potenciaLabel.textContent = "Potencia (ej: 100W):";
@@ -264,10 +284,12 @@ export function buildAddFormContent(
   potenciaInput.className = "mb-3 w-full rounded border border-slate-300 px-1.5 py-1 text-xs";
   wrapper.appendChild(potenciaInput);
 
+  // Mensaje de validación, oculto hasta que falte algún dato.
   const errorMsg = document.createElement("p");
   errorMsg.className = "mb-2 hidden text-xs text-red-600";
   wrapper.appendChild(errorMsg);
 
+  // Botón Guardar: valida los campos obligatorios y entrega los valores.
   const saveBtn = document.createElement("button");
   saveBtn.type = "button";
   saveBtn.textContent = "Guardar";

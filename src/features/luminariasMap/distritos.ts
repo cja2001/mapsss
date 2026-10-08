@@ -1,5 +1,7 @@
+// Utilidades para separar las luminarias por distrito en los dashboards.
 import type { Luminaria } from "../../lib/types";
 
+/** Un distrito con su clave de comparación, su nombre visible y su número de luminarias. */
 export type DistritoResumen = { clave: string; nombre: string; total: number };
 
 /** Valor del selector que significa "sin filtrar por distrito". */
@@ -34,6 +36,7 @@ export function listarDistritos(luminarias: Luminaria[]): DistritoResumen[] {
   return [...porClave.values()].sort((a, b) => b.total - a.total);
 }
 
+/** Devuelve solo las luminarias del distrito indicado (o todas, si no hay filtro). */
 export function filtrarPorDistrito(luminarias: Luminaria[], clave: string) {
   if (clave === TODOS_LOS_DISTRITOS) return luminarias;
   return luminarias.filter((luminaria) => claveDistrito(luminaria.distrito) === clave);

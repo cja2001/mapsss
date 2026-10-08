@@ -6,6 +6,7 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+/** Indica si la app ya corre instalada (como PWA), en Android/escritorio o en iOS. */
 function corriendoInstalada() {
   const enStandalone = window.matchMedia("(display-mode: standalone)").matches;
   const enIosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone === true;
@@ -20,11 +21,14 @@ export function useInstallPrompt() {
   const [evento, setEvento] = useState<BeforeInstallPromptEvent | null>(null);
   const [instalada, setInstalada] = useState(corriendoInstalada);
 
+  // Escucha los eventos del navegador: cuando ofrece instalar y cuando la instalación termina.
   useEffect(() => {
+    // El navegador ofrece instalar: se guarda el evento para lanzarlo desde nuestro botón.
     function alDisponible(e: Event) {
       e.preventDefault();
       setEvento(e as BeforeInstallPromptEvent);
     }
+    // La app se instaló: ya no hace falta ofrecerlo.
     function alInstalar() {
       setInstalada(true);
       setEvento(null);
@@ -38,6 +42,7 @@ export function useInstallPrompt() {
     };
   }, []);
 
+  // Muestra el diálogo nativo de instalación y devuelve si el usuario aceptó.
   async function instalar() {
     if (!evento) return false;
     await evento.prompt();

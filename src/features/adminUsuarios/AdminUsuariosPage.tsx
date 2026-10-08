@@ -5,7 +5,9 @@ import { CreateUserForm } from "./CreateUserForm";
 import { UsersTable } from "./UsersTable";
 import fondoImg from "../../assets/fondosss.webp";
 
+/** Pantalla de administración de usuarios: formulario de alta y tabla de usuarios. */
 export function AdminUsuariosPage() {
+  // Datos y acciones sobre usuarios (que viven en useUsuarios).
   const { usuarios, roles, loading, recargar, actualizarRol, alternarActivo } = useUsuarios();
 
   return (
@@ -14,6 +16,7 @@ export function AdminUsuariosPage() {
       style={{ "--app-bg-image": `url(${fondoImg})` } as CSSProperties}
     >
       <div className="mx-auto max-w-5xl">
+        {/* Encabezado con el título y el enlace de vuelta al menú. */}
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-white">Administrar Usuarios</h1>
           <Link
@@ -24,6 +27,7 @@ export function AdminUsuariosPage() {
           </Link>
         </div>
 
+        {/* Formulario de alta a la izquierda y tabla de usuarios a la derecha. */}
         <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
           <CreateUserForm roles={roles} onCreated={recargar} />
           <UsersTable

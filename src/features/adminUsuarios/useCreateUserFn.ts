@@ -1,5 +1,6 @@
 import { supabase, EDGE_FUNCTION_URL } from "../../lib/supabaseClient";
 
+/** Obtiene el token de la sesión actual, que la Edge Function usa para verificar que quien llama es admin. */
 async function getBearerToken() {
   const { data: { session }, error } = await supabase.auth.getSession();
   if (error || !session) {
@@ -8,7 +9,9 @@ async function getBearerToken() {
   return session.access_token;
 }
 
+/** Acciones de usuarios que requieren permisos elevados: se hacen a través de la Edge Function create-user. */
 export function useCreateUserFn() {
+  // Crea un usuario (cuenta de acceso y perfil).
   async function crearUsuario(payload: {
     email: string;
     password: string;
@@ -26,6 +29,7 @@ export function useCreateUserFn() {
 
     const resData = await response.json();
 
+    // Respuesta con error: se distingue el caso de que la función no esté desplegada.
     if (!response.ok) {
       if (response.status === 404) {
         throw new Error(
@@ -38,6 +42,7 @@ export function useCreateUserFn() {
     return resData;
   }
 
+  // Elimina un usuario de forma permanente (perfil y cuenta de acceso).
   async function eliminarUsuario(authUserId: string) {
     const token = await getBearerToken();
 

@@ -6,10 +6,13 @@ import { Alert } from "../../components/Alert";
 import { PasswordInput } from "../../components/PasswordInput";
 import loginImg from "../../assets/imglogin.webp";
 
+// Clases de Tailwind compartidas por los campos del formulario.
 const inputClasses =
   "w-full rounded-lg border border-white/10 bg-white/5 px-3.5 py-2.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/30";
 
+/** Pantalla de inicio de sesión: formulario de usuario y contraseña. */
 export function LoginPage() {
+  // Estado de la sesión y lógica del formulario (que vive en useLogin).
   const { status, session, activo } = useAuth();
   const {
     usuario,
@@ -23,10 +26,12 @@ export function LoginPage() {
     handleLogin,
   } = useLogin();
 
+  // Si ya hay una sesión activa, se pasa directo al menú.
   if (status === "ready" && session && activo) {
     return <Navigate to="/menu" replace />;
   }
 
+  // Permite enviar el formulario con la tecla Enter.
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter") handleLogin();
   }
@@ -34,6 +39,7 @@ export function LoginPage() {
   return (
     <div className="app-shell-bg flex min-h-screen items-center justify-center p-4">
       <div className="grid w-full max-w-4xl overflow-hidden rounded-2xl border border-white/10 shadow-2xl shadow-black/50 md:grid-cols-2">
+        {/* Panel izquierdo con la imagen de bienvenida (oculto en pantallas pequeñas). */}
         <div
           className="relative hidden min-h-[420px] flex-col justify-end p-8 md:flex"
           style={{ backgroundImage: `url(${loginImg})`, backgroundSize: "cover", backgroundPosition: "center" }}
@@ -45,7 +51,9 @@ export function LoginPage() {
           </div>
         </div>
 
+        {/* Panel derecho: el formulario. */}
         <div className="flex flex-col gap-5 bg-brand-900 p-8">
+          {/* Campo de usuario (correo) con su mensaje de error. */}
           <div>
             <label htmlFor="usuario" className="mb-1.5 block text-sm font-medium text-slate-300">
               Usuario
@@ -64,6 +72,7 @@ export function LoginPage() {
             )}
           </div>
 
+          {/* Campo de contraseña con su mensaje de error. */}
           <div>
             <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-300">
               Password
@@ -81,9 +90,11 @@ export function LoginPage() {
             )}
           </div>
 
+          {/* Mensajes generales de error o de éxito. */}
           {globalError && <Alert type="error" message={globalError} />}
           {globalSuccess && <Alert type="success" message={globalSuccess} />}
 
+          {/* Botón de envío. */}
           <Button onClick={handleLogin} loading={loading} className="w-full">
             {loading ? "Verificando..." : "Iniciar sesión"}
           </Button>

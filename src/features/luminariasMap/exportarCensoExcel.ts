@@ -1,3 +1,4 @@
+// Exportación del censo a Excel. Reutiliza las utilidades de exportarReporteExcel.
 import type { Luminaria } from "../../lib/types";
 import {
   COLUMNAS_LUMINARIA,
@@ -10,6 +11,7 @@ import {
   type GrupoDatos,
 } from "./exportarReporteExcel";
 
+/** Todo lo que necesita el Excel del censo. */
 export type DatosCenso = {
   /** Nombre del distrito al que se filtraron los datos; sin definir si son todos. */
   distrito?: string;
@@ -31,6 +33,7 @@ export async function construirLibroCenso(datos: DatosCenso, generado = new Date
 
   const { luminarias, grupos, distrito } = datos;
 
+  // Hoja "Resumen": encabezado e indicador del total.
   const resumen = libro.addWorksheet("Resumen");
   encabezadoResumen(resumen, "Censo de luminarias", generado, distrito);
 
@@ -44,6 +47,7 @@ export async function construirLibroCenso(datos: DatosCenso, generado = new Date
   // Una tabla por gráfico a la izquierda y su imagen a la derecha.
   agregarGrupos(libro, resumen, grupos, fila, 4);
 
+  // Hoja con el listado de luminarias.
   agregarHojaLuminarias(libro, "Luminarias", luminarias, COLUMNAS_CENSO);
 
   return libro.xlsx.writeBuffer();

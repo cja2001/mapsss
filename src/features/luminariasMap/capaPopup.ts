@@ -10,9 +10,11 @@ export function buildCapaPopupContent(
   capa: CapaExtraConfig,
   onGuardar: (cambios: Record<string, string>) => Promise<void>
 ) {
+  // Contenedor del popup.
   const wrapper = document.createElement("div");
   wrapper.className = "min-w-[190px] text-sm";
 
+  // Campos de solo lectura (los editables se muestran aparte, como selectores).
   const propKeysEditables = new Set((capa.camposEditables ?? []).map((c) => c.propKey));
 
   (capa.popupFields ?? [])
@@ -23,6 +25,7 @@ export function buildCapaPopupContent(
       wrapper.appendChild(p);
     });
 
+  // Un selector por cada campo editable, con el valor actual preseleccionado.
   const selects: Record<string, HTMLSelectElement> = {};
 
   (capa.camposEditables ?? []).forEach(({ propKey, label, opciones }) => {
@@ -47,6 +50,7 @@ export function buildCapaPopupContent(
       select.appendChild(optionEl);
     });
 
+    // Si el valor actual no está entre las opciones, se añade para no perderlo.
     if (!coincide && valorActual) {
       const optionEl = document.createElement("option");
       optionEl.value = valorActual;
@@ -59,10 +63,12 @@ export function buildCapaPopupContent(
     wrapper.appendChild(select);
   });
 
+  // Mensaje de error, oculto hasta que falle un guardado.
   const errorMsg = document.createElement("p");
   errorMsg.className = "mt-1.5 hidden text-xs text-red-600";
   wrapper.appendChild(errorMsg);
 
+  // Botón Guardar: envía los valores elegidos y muestra el resultado.
   if (capa.camposEditables?.length) {
     const saveBtn = document.createElement("button");
     saveBtn.type = "button";

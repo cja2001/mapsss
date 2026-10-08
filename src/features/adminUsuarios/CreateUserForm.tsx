@@ -5,11 +5,14 @@ import { Alert } from "../../components/Alert";
 import type { Rol } from "../../lib/types";
 import { useCreateUserFn } from "./useCreateUserFn";
 
+// Clases de Tailwind compartidas por los campos del formulario.
 const inputClasses =
   "w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/30";
 
+/** Formulario para crear un usuario nuevo. Avisa con `onCreated` para que la tabla se recargue. */
 export function CreateUserForm({ roles, onCreated }: { roles: Rol[]; onCreated: () => void }) {
   const { crearUsuario } = useCreateUserFn();
+  // Valores de los campos, estado de envío y mensaje de resultado.
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
@@ -18,6 +21,7 @@ export function CreateUserForm({ roles, onCreated }: { roles: Rol[]; onCreated: 
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
+  // Envía el formulario: crea el usuario mediante la Edge Function y limpia los campos.
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!email || !password || !rolId || !nombre || !apellido) return;
@@ -27,6 +31,7 @@ export function CreateUserForm({ roles, onCreated }: { roles: Rol[]; onCreated: 
 
     try {
       await crearUsuario({ email, password, nombre, apellido, rol_id: String(rolId) });
+      // Creado: se muestra el aviso, se vacía el formulario y se recarga la tabla.
       setMsg({ text: "✓ Usuario creado exitosamente", type: "success" });
       setNombre("");
       setApellido("");
@@ -34,6 +39,7 @@ export function CreateUserForm({ roles, onCreated }: { roles: Rol[]; onCreated: 
       setPassword("");
       onCreated();
     } catch (err) {
+      // Si no hubo respuesta, lo más probable es que la Edge Function no esté desplegada.
       let text = err instanceof Error ? err.message : "Error desconocido";
       if (text === "TypeError: Failed to fetch" || text === "Failed to fetch") {
         text =
@@ -49,6 +55,7 @@ export function CreateUserForm({ roles, onCreated }: { roles: Rol[]; onCreated: 
     <Card>
       <h2 className="mb-4 text-lg font-bold text-white">Crear usuario</h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        {/* Nombre y apellido, lado a lado. */}
         <div className="grid grid-cols-2 gap-3">
           <input
             className={inputClasses}
@@ -66,6 +73,7 @@ export function CreateUserForm({ roles, onCreated }: { roles: Rol[]; onCreated: 
           />
         </div>
 
+        {/* Correo electrónico. */}
         <input
           className={inputClasses}
           type="email"
@@ -75,6 +83,7 @@ export function CreateUserForm({ roles, onCreated }: { roles: Rol[]; onCreated: 
           required
         />
 
+        {/* Contraseña inicial. */}
         <input
           className={inputClasses}
           type="password"
@@ -84,6 +93,7 @@ export function CreateUserForm({ roles, onCreated }: { roles: Rol[]; onCreated: 
           required
         />
 
+        {/* Rol del nuevo usuario. */}
         <select
           className={inputClasses}
           value={rolId}
@@ -97,6 +107,7 @@ export function CreateUserForm({ roles, onCreated }: { roles: Rol[]; onCreated: 
           ))}
         </select>
 
+        {/* Mensaje de éxito o de error. */}
         {msg && <Alert message={msg.text} type={msg.type} />}
 
         <Button type="submit" loading={loading}>
