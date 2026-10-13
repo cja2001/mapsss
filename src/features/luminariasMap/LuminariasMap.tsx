@@ -27,7 +27,8 @@ import {
   agregarControlLeyenda,
 } from "./leafletHelpers";
 import { crearMedidor, type Medidor } from "./measureTool";
-import { buildPopupContent, buildAddFormContent } from "./popupContent";
+import { buildPopupContent, buildAddFormContent, buildColoniaPopupContent } from "./popupContent";
+import { calcularPuntoEtiqueta } from "./polygonLabelPoint";
 import { cargarHistorialCambios } from "./historialCambios";
 import type { Luminaria } from "../../lib/types";
 import { mensajeDeError } from "../../lib/mensajeDeError";
@@ -73,6 +74,13 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
 
     map.fitBounds(colonia.bounds, { maxZoom: 17, padding: [40, 40] });
     setQueryBusqueda("");
+
+    // Popup con el nombre y el enlace "Cómo llegar", en el punto interior de la colonia (el mismo de su etiqueta).
+    const destino = calcularPuntoEtiqueta(colonia.feature.geometry) ?? colonia.bounds.getCenter();
+    L.popup({ autoPan: false })
+      .setLatLng(destino)
+      .setContent(buildColoniaPopupContent(colonia.nombre, destino.lat, destino.lng))
+      .openOn(map);
 
     window.setTimeout(() => {
       if (resaltadoBusquedaRef.current === resaltado) {

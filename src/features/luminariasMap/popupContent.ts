@@ -23,6 +23,32 @@ export type PopupHandlers = {
 // Clases de Tailwind compartidas por los selectores y campos del popup.
 const CLASE_SELECT = "rounded border border-slate-300 px-1.5 py-1 text-xs";
 
+/** Enlace que abre Google Maps con la ruta desde la ubicación actual hasta el punto indicado. */
+function crearEnlaceComoLlegar(lat: number, lng: number) {
+  const enlace = document.createElement("a");
+  enlace.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+  enlace.target = "_blank";
+  enlace.rel = "noopener noreferrer";
+  enlace.textContent = "Cómo llegar (Google Maps)";
+  enlace.className =
+    "mt-1.5 inline-block rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-brand-600 hover:underline";
+  return enlace;
+}
+
+/** Popup de una colonia encontrada con el buscador: su nombre y el enlace para llegar a ella. */
+export function buildColoniaPopupContent(nombre: string, lat: number, lng: number) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "min-w-[170px] text-sm";
+
+  const titulo = document.createElement("strong");
+  titulo.className = "block";
+  titulo.textContent = nombre;
+  wrapper.appendChild(titulo);
+
+  wrapper.appendChild(crearEnlaceComoLlegar(lat, lng));
+  return wrapper;
+}
+
 /** Fecha y hora en formato corto local; si no es una fecha válida, devuelve el texto original. */
 function formatearFecha(iso: string) {
   const fecha = new Date(iso);
@@ -154,14 +180,7 @@ export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: 
 
   // Luminaria dañada: enlace a Google Maps con la ruta desde la ubicación actual hasta ella.
   if (config.pideTipoDano && esDanada(row.estado) && row.lat != null && row.lng != null) {
-    const comoLlegar = document.createElement("a");
-    comoLlegar.href = `https://www.google.com/maps/dir/?api=1&destination=${row.lat},${row.lng}&travelmode=driving`;
-    comoLlegar.target = "_blank";
-    comoLlegar.rel = "noopener noreferrer";
-    comoLlegar.textContent = "Cómo llegar (Google Maps)";
-    comoLlegar.className =
-      "mt-1.5 inline-block rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-brand-600 hover:underline";
-    wrapper.appendChild(comoLlegar);
+    wrapper.appendChild(crearEnlaceComoLlegar(row.lat, row.lng));
   }
 
   // Potencia: campo de texto con su botón Guardar.
