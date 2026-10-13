@@ -5,13 +5,14 @@ import { Button } from "../../components/Button";
 import { Alert } from "../../components/Alert";
 import { PasswordInput } from "../../components/PasswordInput";
 import loginImg from "../../assets/imglogin.webp";
+import logo from "../../assets/logo-sss.webp";
 
 // Clases de Tailwind compartidas por los campos del formulario (el ícono va a la izquierda, por eso el padding extra).
 const inputClasses =
-  "w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-3.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/30";
+  "campo-login w-full rounded-[10px] border border-white/[0.12] bg-white/[0.07] py-2.5 pl-10 pr-3.5 text-sm text-white placeholder:text-white/30 transition focus:border-[#4a90ff] focus:bg-[#4a90ff]/10 focus:outline-none focus:ring-[3px] focus:ring-[#4a90ff]/20";
 
 // Clases de las etiquetas de los campos: mayúsculas pequeñas con letras separadas.
-const labelClasses = "mb-2 block text-xs font-bold uppercase tracking-[0.2em] text-slate-300";
+const labelClasses = "mb-1.5 block text-[11px] font-bold uppercase tracking-[0.2em] text-white/60";
 
 // Íconos de los campos (SVG), colocados dentro del input.
 function IconUsuario() {
@@ -70,26 +71,24 @@ export function LoginPage() {
       className="relative flex min-h-screen items-center justify-center bg-brand-950 bg-cover bg-center p-4"
       style={{ backgroundImage: `url(${loginImg})` }}
     >
-      {/* Capa oscura sobre la foto para que la tarjeta y el texto se lean bien. */}
-      <div className="absolute inset-0 bg-brand-950/60" />
-
       {/* Tarjeta de vidrio con el encabezado y el formulario. */}
-      <div className="relative w-full max-w-md rounded-3xl border border-white/10 bg-brand-900/70 p-8 shadow-2xl shadow-black/60 backdrop-blur-md sm:p-10">
-        {/* Encabezado: institución, nombre de la app y descripción. */}
-        <div className="mb-8 text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.3em] text-brand-400">San Salvador Sur</p>
-          <h1 className="mt-4 text-5xl font-extrabold tracking-tight text-white">MAPSSS</h1>
-          <p className="mt-3 text-lg italic text-slate-300">Mapa de luminarias</p>
+      <div className="relative w-full max-w-sm rounded-[20px] border border-white/[0.08] bg-[#081030]/50 p-6 shadow-[0_32px_80px_rgba(0,0,0,0.55),0_0_0_1px_rgba(100,160,255,0.08)] backdrop-blur-[6px] sm:p-7">
+        {/* Encabezado: escudo, institución, nombre de la app y descripción. */}
+        <div className="mb-5 text-center">
+          <img src={logo} alt="Escudo de San Salvador Sur" className="mx-auto mb-2 h-20 w-20 object-contain drop-shadow-[0_4px_16px_rgba(80,140,255,0.35)]" />
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#5ab4ff]">San Salvador Sur</p>
+          <h1 className="mt-2 text-4xl font-black tracking-wider text-white [text-shadow:0_2px_12px_rgba(80,140,255,0.3)]">MAPSSS</h1>
+          <p className="mt-1.5 text-sm italic text-white/65">Mapa de luminarias</p>
         </div>
 
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4">
           {/* Campo de usuario (correo) con su mensaje de error. */}
           <div>
             <label htmlFor="usuario" className={labelClasses}>
               Usuario
             </label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/40">
                 <IconUsuario />
               </span>
               <input
@@ -104,7 +103,7 @@ export function LoginPage() {
               />
             </div>
             {fieldErrors.usuario && (
-              <p className="mt-1 text-xs text-red-400">{fieldErrors.usuario}</p>
+              <p className="mt-1 text-xs text-[#fca5a5]">{fieldErrors.usuario}</p>
             )}
           </div>
 
@@ -114,7 +113,7 @@ export function LoginPage() {
               Contraseña
             </label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-slate-400">
+              <span className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-white/40">
                 <IconCandado />
               </span>
               <PasswordInput
@@ -127,7 +126,7 @@ export function LoginPage() {
               />
             </div>
             {fieldErrors.password && (
-              <p className="mt-1 text-xs text-red-400">{fieldErrors.password}</p>
+              <p className="mt-1 text-xs text-[#fca5a5]">{fieldErrors.password}</p>
             )}
           </div>
 
@@ -139,7 +138,7 @@ export function LoginPage() {
           <Button
             onClick={handleLogin}
             loading={loading}
-            className="mt-1 w-full rounded-xl! py-3.5! text-sm! uppercase tracking-[0.2em] shadow-brand-500/30"
+            className="mt-1 w-full rounded-[10px]! bg-gradient-to-r! from-[#3a7fe8] to-[#5b6ef5] py-3! text-xs! font-bold uppercase tracking-[0.2em] shadow-[0_6px_24px_rgba(74,144,255,0.45)]! hover:from-[#4a8ff8] hover:to-[#6b7ef8] hover:shadow-[0_8px_30px_rgba(74,144,255,0.6)]!"
           >
             {loading ? "Verificando..." : "Iniciar sesión"}
             {!loading && <IconFlecha />}
@@ -148,7 +147,7 @@ export function LoginPage() {
       </div>
 
       {/* Aviso al pie de la pantalla. */}
-      <p className="absolute inset-x-0 bottom-4 px-4 text-center text-sm text-slate-400">
+      <p className="absolute inset-x-0 bottom-4 px-4 text-center text-xs text-white/50">
         Acceso exclusivo al personal autorizado.
       </p>
     </div>

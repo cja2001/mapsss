@@ -33,7 +33,7 @@ export function PasswordInput({
         aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
         aria-labelledby={labelId}
         onClick={() => setVisible((v) => !v)}
-        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-200"
+        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 transition-colors hover:text-white/85"
       >
         <span id={labelId} className="sr-only">
           {visible ? "Ocultar contraseña" : "Mostrar contraseña"}

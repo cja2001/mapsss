@@ -52,3 +52,14 @@ body {
   background-position: center;
   background-attachment: fixed;
 }
+
+/* Campos del login: el navegador pinta de blanco/azul los campos autocompletados o con credenciales pegadas.
+   Se retrasa ese cambio de fondo "para siempre" y se fuerza el color del texto, así conservan el estilo oscuro. */
+.campo-login:-webkit-autofill,
+.campo-login:-webkit-autofill:hover,
+.campo-login:-webkit-autofill:focus,
+.campo-login:autofill {
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
