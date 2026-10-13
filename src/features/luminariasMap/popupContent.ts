@@ -152,6 +152,18 @@ export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: 
     wrapper.appendChild(p);
   });
 
+  // Luminaria dañada: enlace a Google Maps con la ruta desde la ubicación actual hasta ella.
+  if (config.pideTipoDano && esDanada(row.estado) && row.lat != null && row.lng != null) {
+    const comoLlegar = document.createElement("a");
+    comoLlegar.href = `https://www.google.com/maps/dir/?api=1&destination=${row.lat},${row.lng}&travelmode=driving`;
+    comoLlegar.target = "_blank";
+    comoLlegar.rel = "noopener noreferrer";
+    comoLlegar.textContent = "Cómo llegar (Google Maps)";
+    comoLlegar.className =
+      "mt-1.5 inline-block rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-brand-600 hover:underline";
+    wrapper.appendChild(comoLlegar);
+  }
+
   // Potencia: campo de texto con su botón Guardar.
   if (onGuardarPotencia) {
     const potenciaFila = document.createElement("div");
