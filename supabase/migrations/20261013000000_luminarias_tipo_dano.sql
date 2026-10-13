@@ -8,4 +8,4 @@ alter table public.luminarias
 
 alter table public.luminarias
   add constraint luminarias_tipo_dano_check
-  check (tipo_dano is null or tipo_dano in ('lampara_quemada', 'brazo_danado', 'fotocelda_danada', 'cables_danados'));
+  check (tipo_dano is null or tipo_dano in ('lampara quemada', 'Brazo dañado', 'Fotocelda dañada', 'Cables dañados'));

@@ -30,6 +30,7 @@ import { crearMedidor, type Medidor } from "./measureTool";
 import { buildPopupContent, buildAddFormContent } from "./popupContent";
 import { cargarHistorialCambios } from "./historialCambios";
 import type { Luminaria } from "../../lib/types";
+import { mensajeDeError } from "../../lib/mensajeDeError";
 
 // Punto donde se centra el mapa al abrir.
 const CENTRO_INICIAL: [number, number] = [13.692, -89.191];
@@ -188,28 +189,28 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
               } as Partial<Luminaria>);
               map.closePopup();
             } catch (err) {
-              alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
+              alert("Error al actualizar: " + mensajeDeError(err));
             }
           },
           onGuardarTasada: async (nuevoValor) => {
             try {
               await updateLuminaria(row.id, { tasada: nuevoValor });
             } catch (err) {
-              alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
+              alert("Error al actualizar: " + mensajeDeError(err));
             }
           },
           onGuardarPotencia: async (nuevoValor) => {
             try {
               await updateLuminaria(row.id, { potencia: nuevoValor });
             } catch (err) {
-              alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
+              alert("Error al actualizar: " + mensajeDeError(err));
             }
           },
           onGuardarServicio: async (nuevoValor) => {
             try {
               await updateLuminaria(row.id, { servicio: nuevoValor });
             } catch (err) {
-              alert("Error al actualizar: " + (err instanceof Error ? err.message : err));
+              alert("Error al actualizar: " + mensajeDeError(err));
             }
           },
           cargarHistorial: () => cargarHistorialCambios(row.id),
@@ -246,7 +247,7 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
           } as Partial<Luminaria>);
           map!.closePopup();
         } catch (err) {
-          alert("Error al añadir: " + (err instanceof Error ? err.message : err));
+          alert("Error al añadir: " + mensajeDeError(err));
         }
       });
 

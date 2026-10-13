@@ -36,14 +36,15 @@ export type Luminaria = {
 };
 
 /** Tipos de daño que se pueden reportar. */
-export type TipoDano = "lampara_quemada" | "brazo_danado" | "fotocelda_danada" | "cables_danados";
+export type TipoDano = "lampara quemada" | "Brazo dañado" | "Fotocelda dañada" | "Cables dañados";
 
-// Tipos de daño con su etiqueta, para los selectores.
+// Tipos de daño con su etiqueta, para los selectores. Los `value` deben coincidir exactamente
+// con los del check `luminarias_tipo_dano_check` de la base de datos.
 export const TIPOS_DANO: { value: TipoDano; label: string }[] = [
-  { value: "lampara_quemada", label: "Lámpara quemada" },
-  { value: "brazo_danado", label: "Brazo dañado" },
-  { value: "fotocelda_danada", label: "Fotocelda dañada" },
-  { value: "cables_danados", label: "Cables dañados" },
+  { value: "lampara quemada", label: "Lámpara quemada" },
+  { value: "Brazo dañado", label: "Brazo dañado" },
+  { value: "Fotocelda dañada", label: "Fotocelda dañada" },
+  { value: "Cables dañados", label: "Cables dañados" },
 ];
 
 /** Etiqueta legible de un tipo de daño ("N/D" si no hay). */
