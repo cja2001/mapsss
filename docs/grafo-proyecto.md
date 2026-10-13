@@ -187,7 +187,7 @@ Un error real de Supabase descarta la mutación. Un error de red detiene la sinc
 |---|---|---|
 | Ruta | `/luminarias/censo` | `/luminarias/reporte` |
 | Campo editable | `tipo`, más casilla `tasada` | `estado` |
-| Columnas pedidas | id, lat, lng, tipo, potencia, distrito, tasada, servicio | además estado |
+| Columnas pedidas | id, lat, lng, tipo, potencia, distrito, tasada, servicio | además estado y tipo_dano (se pide al marcar "dañada") |
 | Filtro por distrito | `SelectorDistrito.tsx` y `distritos.ts`: todo el dashboard y el Excel se calculan sobre el distrito elegido | igual, y las reparaciones por mes se filtran por las luminarias del distrito |
 | Servicio nuevo o antiguo | editable en el popup y obligatorio al añadir | visible en el popup y obligatorio al añadir |
 

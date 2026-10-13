@@ -1,6 +1,7 @@
 // Exportación del reporte a Excel. También contiene las utilidades de gráficos y de hojas que reutiliza la exportación del censo.
 import type { Workbook, Worksheet } from "exceljs";
-import type { Luminaria } from "../../lib/types";
+import { TIPOS_DANO, etiquetaTipoDano, type Luminaria } from "../../lib/types";
+import { esDanada } from "./colorConfig";
 import type { MesReparaciones } from "./useReparacionesPorMes";
 import { nombreDistrito } from "./distritos";
 
@@ -192,6 +193,24 @@ function etiquetaServicio(servicio: Luminaria["servicio"]) {
   return "Sin clasificar";
 }
 
+/** Tabla y gráfico de las luminarias dañadas según su tipo de daño (las sin tipo registrado van aparte). */
+function grupoTiposDano(luminarias: Luminaria[]): GrupoDatos {
+  const danadas = luminarias.filter((l) => esDanada(l.estado));
+  const filas: FilaEstado[] = TIPOS_DANO.map(({ value, label }) => ({
+    key: value,
+    label,
+    color: "#ef4444",
+    valor: danadas.filter((l) => l.tipo_dano === value).length,
+  }));
+  filas.push({
+    key: "sin_especificar",
+    label: "Sin especificar",
+    color: "#6b7280",
+    valor: danadas.filter((l) => !TIPOS_DANO.some((t) => t.value === l.tipo_dano)).length,
+  });
+  return { titulo: "Luminarias dañadas por tipo de daño", filas };
+}
+
 /** Alto por defecto de una fila de Excel, en píxeles, para calcular cuántas filas ocupa cada imagen. */
 const ALTO_FILA_PX = 20;
 
@@ -262,6 +281,7 @@ export type ColumnaLuminaria = { header: string; key: string; width: number };
 export const COLUMNAS_LUMINARIA: ColumnaLuminaria[] = [
   { header: "ID", key: "id", width: 10 },
   { header: "Estado", key: "estado", width: 16 },
+  { header: "Tipo de daño", key: "tipo_dano", width: 18 },
   { header: "Tipo", key: "tipo", width: 16 },
   { header: "Potencia", key: "potencia", width: 12 },
   { header: "Distrito", key: "distrito", width: 22 },
@@ -288,6 +308,8 @@ export function agregarHojaLuminarias(
     luminarias.map((l) => ({
       id: l.id > 0 ? l.id : "Pendiente de sincronizar",
       estado: l.estado ?? "N/D",
+      // Solo tiene sentido mientras la luminaria está dañada.
+      tipo_dano: esDanada(l.estado) ? etiquetaTipoDano(l.tipo_dano) : "",
       tipo: l.tipo ?? "N/D",
       potencia: l.potencia ?? "N/D",
       distrito: nombreDistrito(l.distrito),
@@ -388,8 +410,8 @@ export async function construirLibroReporte(datos: DatosReporte, generado = new 
   });
   filaImagen += filasQueOcupa(estado.alto);
 
-  // Tablas y gráficos adicionales (desgloses por distrito).
-  agregarGrupos(libro, resumen, grupos, fila, filaImagen);
+  // Tablas y gráficos adicionales: dañadas por tipo de daño y desgloses por distrito.
+  agregarGrupos(libro, resumen, [grupoTiposDano(luminarias), ...grupos], fila, filaImagen);
 
   // ----- Hojas de detalle -----
   agregarHojaLuminarias(libro, "Por reparar", porReparar);

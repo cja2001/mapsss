@@ -20,8 +20,10 @@ export type DatosCenso = {
   grupos: GrupoDatos[];
 };
 
-/** El censo no carga el estado, así que esa columna se omite del listado. */
-const COLUMNAS_CENSO = COLUMNAS_LUMINARIA.filter((columna) => columna.key !== "estado");
+/** El censo no carga el estado ni el tipo de daño, así que esas columnas se omiten del listado. */
+const COLUMNAS_CENSO = COLUMNAS_LUMINARIA.filter(
+  (columna) => columna.key !== "estado" && columna.key !== "tipo_dano"
+);
 
 /** Arma el libro de Excel del censo: resumen con una tabla y un gráfico por cada panel del dashboard, más el listado de luminarias. */
 export async function construirLibroCenso(datos: DatosCenso, generado = new Date()) {

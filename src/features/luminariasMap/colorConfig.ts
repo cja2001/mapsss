@@ -1,7 +1,7 @@
 // Configuración del mapa de luminarias: tipos, colores, categorías, campos editables y capas de cada modo.
 import { supabase } from "../../lib/supabaseClient";
 import { encolarMutacion, esErrorDeRed } from "../../lib/offlineQueue";
-import type { Luminaria } from "../../lib/types";
+import { etiquetaTipoDano, type Luminaria } from "../../lib/types";
 
 /** Los dos modos del mapa. */
 export type MapMode = "censo" | "reporte";
@@ -75,6 +75,8 @@ export type MapaConfig = {
   editableTasada?: boolean;
   /** Si es true, el popup muestra un selector para marcar el servicio como nuevo o antiguo directamente. */
   editableServicio?: boolean;
+  /** Si es true, al marcar la luminaria como dañada se pide el tipo de daño (lámpara, brazo, fotocelda, cables). */
+  pideTipoDano?: boolean;
   popupTitulo: (row: Luminaria) => string;
   popupCampos: (row: Luminaria) => CampoPopup[];
   addForm: {
@@ -95,6 +97,12 @@ function etiquetaServicio(servicio: Luminaria["servicio"]) {
 /** Normaliza un texto para compararlo: minúsculas y sin espacios sobrantes. */
 function norm(v: string | null | undefined) {
   return (v || "").toString().toLowerCase().trim();
+}
+
+/** Indica si el estado de una luminaria es "dañada" (con o sin tilde). */
+export function esDanada(estado: string | null | undefined) {
+  const v = norm(estado);
+  return v === "dañada" || v === "danada";
 }
 
 /** Limpia el valor de MATERIAL (espacios extra, backticks sueltos, etc. que trae el dato original). */
@@ -303,7 +311,7 @@ const censoConfig: MapaConfig = {
 const reporteConfig: MapaConfig = {
   mode: "reporte",
   titulo: "Reporte de luminarias",
-  selectColumns: "id, lat, lng, tipo, potencia, estado, distrito, tasada, servicio",
+  selectColumns: "id, lat, lng, tipo, potencia, estado, distrito, tasada, servicio, tipo_dano",
   // Color del punto según el estado.
   colorFor: (row) => {
     const v = norm(row.estado);
@@ -338,10 +346,13 @@ const reporteConfig: MapaConfig = {
   editableField: "estado",
   editableLabel: "estado",
   editableOpciones: ["buena", "dañada", "mantenimiento"],
+  pideTipoDano: true,
   // Contenido del popup.
   popupTitulo: (row) => `Luminaria ${row.id}`,
   popupCampos: (row) => [
     { label: "Estado", value: row.estado || "N/D" },
+    // El tipo de daño solo se muestra mientras la luminaria está dañada.
+    ...(esDanada(row.estado) ? [{ label: "Tipo de daño", value: etiquetaTipoDano(row.tipo_dano) }] : []),
     { label: "Distrito", value: row.distrito || "N/D" },
     { label: "Tipo", value: row.tipo || "N/D" },
     { label: "Tasada", value: row.tasada ? "Sí" : "No" },

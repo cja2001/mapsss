@@ -1,10 +1,18 @@
 // Contenido de los popups del mapa. Se construye con elementos del DOM (no con React) porque Leaflet los inserta directamente.
-import { SERVICIOS, type CambioLuminaria, type Luminaria, type Servicio } from "../../lib/types";
-import type { MapaConfig } from "./colorConfig";
+import {
+  SERVICIOS,
+  TIPOS_DANO,
+  type CambioLuminaria,
+  type Luminaria,
+  type Servicio,
+  type TipoDano,
+} from "../../lib/types";
+import { esDanada, type MapaConfig } from "./colorConfig";
 
 /** Acciones que el popup puede disparar; las que no se definen no muestran su control. */
 export type PopupHandlers = {
-  onGuardarEdicion: (nuevoValor: string) => void;
+  /** `tipoDano` solo viene con valor cuando el modo lo pide y el nuevo estado es "dañada". */
+  onGuardarEdicion: (nuevoValor: string, tipoDano: TipoDano | null) => void;
   onGuardarTasada?: (nuevoValor: boolean) => void;
   /** Si se define, la potencia se muestra como un campo editable en vez de texto. */
   onGuardarPotencia?: (nuevoValor: string) => void;
@@ -28,6 +36,41 @@ const ETIQUETA_CAMPO: Record<CambioLuminaria["campo"], string> = {
   tipo: "Tipo",
   potencia: "Potencia",
 };
+
+/**
+ * Selector del tipo de daño (lámpara, brazo, fotocelda, cables), oculto hasta que el estado elegido sea "dañada".
+ * `actualizar` debe llamarse cada vez que cambia el estado; `valor` es null si no hay un tipo elegido.
+ */
+function crearSelectorTipoDano(valorInicial: string | null, claseSelect: string, claseFila: string) {
+  const fila = document.createElement("label");
+  fila.className = `${claseFila} hidden items-center gap-1.5`;
+
+  const texto = document.createElement("b");
+  texto.textContent = "Tipo de daño:";
+
+  const select = document.createElement("select");
+  select.className = `flex-1 ${claseSelect}`;
+  [{ value: "", label: "Seleccionar…" }, ...TIPOS_DANO].forEach(({ value, label }) => {
+    const optionEl = document.createElement("option");
+    optionEl.value = value;
+    optionEl.textContent = label;
+    if (value === (valorInicial ?? "")) optionEl.selected = true;
+    select.appendChild(optionEl);
+  });
+
+  fila.appendChild(texto);
+  fila.appendChild(select);
+
+  return {
+    fila,
+    actualizar: (estado: string) => {
+      const visible = esDanada(estado);
+      fila.classList.toggle("hidden", !visible);
+      fila.classList.toggle("flex", visible);
+    },
+    valor: () => (select.value || null) as TipoDano | null,
+  };
+}
 
 /** Enlace "Ver historial de cambios" que, al pulsarlo, descarga y lista los cambios de tipo y de potencia de la luminaria. */
 function crearSeccionHistorial(cargarHistorial: () => Promise<CambioLuminaria[]>) {
@@ -212,7 +255,34 @@ export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: 
   saveBtn.textContent = "Guardar";
   saveBtn.className =
     "rounded bg-brand-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-500";
-  saveBtn.onclick = () => onGuardarEdicion(select.value);
+
+  // Tipo de daño (solo en el reporte): aparece al elegir el estado "dañada".
+  const dano = config.pideTipoDano
+    ? crearSelectorTipoDano(row.tipo_dano, CLASE_SELECT, "mt-2.5")
+    : null;
+  const danoError = document.createElement("p");
+  danoError.className = "mt-1 hidden text-xs text-red-600";
+  danoError.textContent = "Por favor indica el tipo de daño.";
+
+  if (dano) {
+    dano.actualizar(select.value);
+    select.onchange = () => {
+      dano.actualizar(select.value);
+      danoError.classList.add("hidden");
+    };
+    wrapper.appendChild(dano.fila);
+    wrapper.appendChild(danoError);
+  }
+
+  // Al guardar, si está dañada se exige el tipo de daño; en cualquier otro estado se limpia.
+  saveBtn.onclick = () => {
+    const tipoDano = dano && esDanada(select.value) ? dano.valor() : null;
+    if (dano && esDanada(select.value) && !tipoDano) {
+      danoError.classList.remove("hidden");
+      return;
+    }
+    onGuardarEdicion(select.value, tipoDano);
+  };
 
   form.appendChild(select);
   form.appendChild(saveBtn);
@@ -229,7 +299,12 @@ export function buildPopupContent(row: Luminaria, config: MapaConfig, handlers: 
 /** Construye el formulario del popup para añadir una luminaria nueva. */
 export function buildAddFormContent(
   config: MapaConfig,
-  onGuardar: (valores: { campo: string; potencia: string; servicio: Servicio }) => void
+  onGuardar: (valores: {
+    campo: string;
+    potencia: string;
+    servicio: Servicio;
+    tipoDano: TipoDano | null;
+  }) => void
 ) {
   // Contenedor y título.
   const wrapper = document.createElement("div");
@@ -255,6 +330,17 @@ export function buildAddFormContent(
     select.appendChild(optionEl);
   });
   wrapper.appendChild(select);
+
+  // Tipo de daño (solo en el reporte): aparece al elegir el estado "dañada" y entonces es obligatorio.
+  const dano = config.pideTipoDano
+    ? crearSelectorTipoDano(null, "w-full rounded border border-slate-300 px-1.5 py-1 text-xs", "mb-2.5")
+    : null;
+  if (dano) {
+    dano.fila.classList.add("flex-col", "items-stretch");
+    dano.fila.classList.remove("items-center");
+    select.onchange = () => dano.actualizar(select.value);
+    wrapper.appendChild(dano.fila);
+  }
 
   // Servicio: obligatorio, nuevo o antiguo.
   const servicioLabel = document.createElement("label");
@@ -296,7 +382,9 @@ export function buildAddFormContent(
   saveBtn.className =
     "w-full rounded bg-brand-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-500";
   saveBtn.onclick = () => {
+    const tipoDano = dano && esDanada(select.value) ? dano.valor() : null;
     const faltantes: string[] = [];
+    if (dano && esDanada(select.value) && !tipoDano) faltantes.push("el tipo de daño");
     if (!servicioSelect.value) faltantes.push("si el servicio es nuevo o antiguo");
     if (!potenciaInput.value.trim()) faltantes.push("la potencia");
     if (faltantes.length > 0) {
@@ -308,6 +396,7 @@ export function buildAddFormContent(
       campo: select.value,
       potencia: potenciaInput.value.trim(),
       servicio: servicioSelect.value as Servicio,
+      tipoDano,
     });
   };
   wrapper.appendChild(saveBtn);

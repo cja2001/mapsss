@@ -133,6 +133,7 @@ function filaOptimista(row: Partial<Luminaria>): Luminaria {
     distrito: null,
     tasada: false,
     servicio: null,
+    tipo_dano: null,
     ...row,
   };
 }

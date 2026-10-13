@@ -31,7 +31,25 @@ export type Luminaria = {
   tasada: boolean;
   /** Si el servicio es nuevo o antiguo. `null` = sin clasificar. */
   servicio: Servicio | null;
+  /** Qué tiene dañado la luminaria. Solo aplica cuando el estado es "dañada". */
+  tipo_dano: TipoDano | null;
 };
+
+/** Tipos de daño que se pueden reportar. */
+export type TipoDano = "lampara_quemada" | "brazo_danado" | "fotocelda_danada" | "cables_danados";
+
+// Tipos de daño con su etiqueta, para los selectores.
+export const TIPOS_DANO: { value: TipoDano; label: string }[] = [
+  { value: "lampara_quemada", label: "Lámpara quemada" },
+  { value: "brazo_danado", label: "Brazo dañado" },
+  { value: "fotocelda_danada", label: "Fotocelda dañada" },
+  { value: "cables_danados", label: "Cables dañados" },
+];
+
+/** Etiqueta legible de un tipo de daño ("N/D" si no hay). */
+export function etiquetaTipoDano(tipoDano: string | null | undefined) {
+  return TIPOS_DANO.find((t) => t.value === tipoDano)?.label ?? "N/D";
+}
 
 /** Valores permitidos para el campo servicio. */
 export type Servicio = "nuevo" | "antiguo";

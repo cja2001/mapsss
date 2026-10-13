@@ -179,10 +179,12 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
       // El popup de cada luminaria, con la acción de guardado de cada campo.
       marker.bindPopup(
         buildPopupContent(row, config, {
-          onGuardarEdicion: async (nuevoValor) => {
+          onGuardarEdicion: async (nuevoValor, tipoDano) => {
             try {
               await updateLuminaria(row.id, {
                 [config.editableField]: nuevoValor,
+                // En el reporte, el tipo de daño acompaña al estado (y se limpia si ya no está dañada).
+                ...(config.pideTipoDano ? { tipo_dano: tipoDano } : {}),
               } as Partial<Luminaria>);
               map.closePopup();
             } catch (err) {
@@ -232,13 +234,14 @@ export function LuminariasMap({ mode }: { mode: MapMode }) {
       setAddActivo(false);
       const { lat, lng } = e.latlng;
 
-      const contenido = buildAddFormContent(config, async ({ campo, potencia, servicio }) => {
+      const contenido = buildAddFormContent(config, async ({ campo, potencia, servicio, tipoDano }) => {
         try {
           await insertLuminaria({
             lat,
             lng,
             potencia,
             servicio,
+            ...(config.pideTipoDano ? { tipo_dano: tipoDano } : {}),
             [config.addForm.fieldKey]: campo.toLowerCase().trim(),
           } as Partial<Luminaria>);
           map!.closePopup();
